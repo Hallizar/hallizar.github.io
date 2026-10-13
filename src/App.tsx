@@ -214,7 +214,7 @@ export default function App() {
 
       {/* Main Clean Header */}
       <header className="topbar sticky top-0 z-40 bg-(--bg)/90 backdrop-blur-md border-b border-(--line)">
-        <div className="w-full flex items-center justify-between gap-6">
+        <div className="w-full max-w-5xl mx-auto flex items-center justify-between gap-6">
           <div
             onClick={() => {
               setRoute('blog');
@@ -288,45 +288,47 @@ export default function App() {
       </header>
 
       {/* Mobile nav bar — переключатель темы остаётся только в верхнем блоке (HALLIZAR.RU) */}
-      <div className="flex md:hidden border-b border-(--line) bg-(--panel) px-4 py-2 gap-2 text-xs font-mono">
-        <button
-          onClick={() => {
-            setRoute('blog');
-            backToFeed();
-          }}
-          className={`px-3 py-1 border rounded-full ${
-            route === 'blog' ? 'border-(--accent) text-(--text)' : 'border-transparent text-(--muted)'
-          }`}
-        >
-          Блог
-        </button>
-        <button
-          onClick={() => {
-            setRoute('services');
-            setSelectedService('gif-studio');
-            selectPost(null);
-          }}
-          className={`px-3 py-1 border rounded-full ${
-            route === 'services' ? 'border-(--accent) text-(--text)' : 'border-transparent text-(--muted)'
-          }`}
-        >
-          Сервисы
-        </button>
-        <button
-          onClick={() => {
-            setRoute('about');
-            selectPost(null);
-          }}
-          className={`px-3 py-1 border rounded-full ${
-            route === 'about' ? 'border-(--accent) text-(--text)' : 'border-transparent text-(--muted)'
-          }`}
-        >
-          О проекте
-        </button>
+      <div className="flex md:hidden border-b border-(--line) bg-(--panel) px-4 sm:px-8 py-2 text-xs font-mono">
+        <div className="w-full max-w-5xl mx-auto flex items-center gap-2">
+          <button
+            onClick={() => {
+              setRoute('blog');
+              backToFeed();
+            }}
+            className={`px-3 py-1 border rounded-full ${
+              route === 'blog' ? 'border-(--accent) text-(--text)' : 'border-transparent text-(--muted)'
+            }`}
+          >
+            Блог
+          </button>
+          <button
+            onClick={() => {
+              setRoute('services');
+              setSelectedService('gif-studio');
+              selectPost(null);
+            }}
+            className={`px-3 py-1 border rounded-full ${
+              route === 'services' ? 'border-(--accent) text-(--text)' : 'border-transparent text-(--muted)'
+            }`}
+          >
+            Сервисы
+          </button>
+          <button
+            onClick={() => {
+              setRoute('about');
+              selectPost(null);
+            }}
+            className={`px-3 py-1 border rounded-full ${
+              route === 'about' ? 'border-(--accent) text-(--text)' : 'border-transparent text-(--muted)'
+            }`}
+          >
+            О проекте
+          </button>
+        </div>
       </div>
 
       {/* Main Container */}
-      <main className="flex-1 w-full max-w-[1360px] mx-auto px-4 sm:px-8 py-6">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-8 py-6">
         {/* Top-Header Ad Slot (Rendered cleanly without debug labels) */}
         {adsLoaded && topHeaderAd && (
           <AdBanner
@@ -337,7 +339,7 @@ export default function App() {
 
         {/* 1. BLOG VIEW — лента 1:1 + читалка со следующим постом по хронологии */}
         {route === 'blog' && (
-          <div className="mx-auto max-w-5xl">
+          <div className="w-full">
             {selectedPost ? (
               <BlogPostView
                 post={selectedPost}
@@ -447,8 +449,8 @@ export default function App() {
       </main>
 
       {/* Clean Footer */}
-      <footer className="border-t border-(--line) bg-(--panel) py-8 px-6 mt-12 text-center text-xs font-mono text-(--muted)">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <footer className="border-t border-(--line) bg-(--panel) py-8 px-4 sm:px-8 mt-12 text-center text-xs font-mono text-(--muted)">
+        <div className="w-full max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <div className="flex items-center justify-center text-(--text) shrink-0">
               <Logo size={16} color="currentColor" />

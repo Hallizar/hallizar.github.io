@@ -99,11 +99,16 @@ button:disabled {
   min-height: 72px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 38px;
   border-bottom: 1px solid var(--line);
   background: color-mix(in srgb, var(--bg) 82%, transparent);
   backdrop-filter: blur(12px);
+  padding: 0 16px;
+}
+
+@media (min-width: 640px) {
+  .topbar {
+    padding: 0 32px;
+  }
 }
 
 .topbar-brand {
