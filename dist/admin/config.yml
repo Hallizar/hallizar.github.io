@@ -1,0 +1,165 @@
+backend:
+  name: github
+  repo: Hallizar/hallizar.dev.github.io
+  branch: main
+  # GitHub Pages serves only static files, so there is NO local OAuth proxy
+  # ("/api/auth/github" does not exist on *.github.io -> every login attempt
+  # ends with a 403 from api.github.com). auth_type: github-pat makes Decap
+  # CMS use the Personal Access Token stored in localStorage directly.
+  auth_type: github-pat
+
+# Asset and media storage
+media_folder: 'public/assets/uploads'
+public_folder: '/assets/uploads'
+
+# Site display URLs
+site_url: 'https://hallizar.ru'
+display_url: 'https://hallizar.ru'
+logo_url: '/favicon.svg'
+
+# Managed Content Collections
+collections:
+  # ------------------------------------------------------------------
+  # 1. POSTS COLLECTION: Blog Posts
+  # ------------------------------------------------------------------
+  - name: posts
+    label: "Posts"
+    label_singular: "Post"
+    folder: src/content/posts
+    create: true
+    format: frontmatter
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    summary: "{{title}} ({{date}})"
+    sortable_fields: ["date", "title"]
+    fields:
+      - label: "Title"
+        name: title
+        widget: string
+        hint: "Article headline / title"
+
+      - label: "Publish Date"
+        name: date
+        widget: datetime
+        format: "YYYY-MM-DDTHH:mm:ssZ"
+        date_format: "YYYY-MM-DD"
+        time_format: "HH:mm"
+        hint: "Publication date and time"
+
+      - label: "Description"
+        name: description
+        widget: text
+        hint: "Short summary for SEO and OpenGraph"
+
+      - label: "Category"
+        name: category
+        widget: string
+        required: false
+        hint: "Topic section"
+
+      - label: "Hero Image"
+        name: heroImage
+        widget: image
+        required: false
+        hint: "Обложка статьи: GIF, анимированный WebP, MP4-видео или статичные PNG/JPG"
+
+      - label: "Tags"
+        name: tags
+        widget: list
+        required: false
+        hint: "Keyword tags"
+
+      - label: "Draft"
+        name: draft
+        widget: boolean
+        default: false
+        required: false
+        hint: "Draft status"
+
+      - label: "Body"
+        name: body
+        widget: markdown
+        hint: "Article content in Markdown"
+
+  # ------------------------------------------------------------------
+  # 2. ADS COLLECTION: Yandex RSN / РСЯ Banners
+  # ------------------------------------------------------------------
+  - name: ads
+    label: "Ads"
+    label_singular: "Ad Banner"
+    folder: src/content/ads
+    create: true
+    format: json
+    extension: json
+    identifier_field: id
+    slug: "{{id}}"
+    summary: "{{title}} [{{slot}}] - {{#if active}}Active{{else}}Paused{{/if}}"
+    fields:
+      - label: "ID"
+        name: id
+        widget: string
+        hint: "Unique identifier matching filename"
+
+      - label: "Title"
+        name: title
+        widget: string
+        hint: "Banner campaign title and descriptive alt text"
+
+      - label: "Slot"
+        name: slot
+        widget: select
+        options:
+          - "sidebar"
+          - "in-article"
+          - "top-header"
+        default: "top-header"
+        hint: "Target advertising slot"
+
+      - label: "Image URL"
+        name: imageUrl
+        widget: image
+        hint: "Banner visual creative image"
+
+      - label: "Target URL"
+        name: targetUrl
+        widget: string
+        pattern: ['^https?://\S+$', "Must be a full URL starting with http:// or https://"]
+        hint: "Target landing URL with UTM tracking parameters"
+
+      - label: "Active"
+        name: active
+        widget: boolean
+        default: true
+        hint: "Toggle to activate or pause the ad campaign"
+
+      - label: "Start Date"
+        name: startDate
+        widget: datetime
+        format: "YYYY-MM-DD"
+        date_format: "YYYY-MM-DD"
+        time_format: false
+        required: false
+        hint: "Campaign start date schedule"
+
+      - label: "End Date"
+        name: endDate
+        widget: datetime
+        format: "YYYY-MM-DD"
+        date_format: "YYYY-MM-DD"
+        time_format: false
+        required: false
+        hint: "Campaign expiration date schedule"
+
+      - label: "Priority"
+        name: priority
+        widget: number
+        value_type: int
+        default: 1
+        min: 1
+        max: 100
+        hint: "Priority weight used when rotating active ads in the same slot"
+
+      - label: "RTB Block ID"
+        name: rtbBlockId
+        widget: string
+        required: false
+        hint: "Optional Yandex RSN RTB block ID"

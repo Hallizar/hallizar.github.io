@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Панель управления | Decap CMS &middot; GitHub</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238a00ff'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/%3E%3C/svg%3E" />
+    <!-- Explicit link to relative config.yml ensures it works on GitHub Pages subpaths -->
+    <link href="config.yml" type="text/yaml" rel="cms-config-url" />
+    <style>
+      #token-helper-bar {
+        position: fixed;
+        bottom: 14px;
+        right: 14px;
+        z-index: 999999;
+        font-family: monospace;
+        font-size: 11px;
+      }
+      .token-btn {
+        background: #111118;
+        color: #cfcfd8;
+        border: 1px solid #333344;
+        padding: 8px 14px;
+        cursor: pointer;
+        border-radius: 6px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        transition: all 0.2s ease;
+      }
+      .token-btn:hover {
+        background: #1d1d28;
+        color: #00ff9d;
+        border-color: #00ff9d;
+      }
+
+      /* GitHub Pages Direct Token Modal */
+      #token-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1000000;
+        background: rgba(5, 5, 8, 0.92);
+        backdrop-filter: blur(8px);
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        font-family: monospace, -apple-system, sans-serif;
+      }
+      .modal-box {
+        max-width: 480px;
+        width: 100%;
+        background: #0d0d14;
+        border: 1px solid #28283a;
+        padding: 28px;
+        border-radius: 8px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        color: #e0e0e8;
+      }
+      .modal-box h2 {
+        margin: 0 0 10px;
+        font-size: 16px;
+        color: #fff;
+      }
+      .modal-box p {
+        font-size: 11px;
+        color: #888898;
+        line-height: 1.6;
+        margin: 0 0 16px;
+      }
+      .modal-input {
+        width: 100%;
+        box-sizing: border-box;
+        background: #06060a;
+        border: 1px solid #333348;
+        color: #fff;
+        padding: 10px 12px;
+        font-family: monospace;
+        font-size: 12px;
+        border-radius: 4px;
+        margin-bottom: 14px;
+        outline: none;
+      }
+      .modal-input:focus {
+        border-color: #8a00ff;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+      .btn-primary {
+        background: #8a00ff;
+        color: #fff;
+        border: none;
+        padding: 9px 18px;
+        font-weight: bold;
+        font-size: 11px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn-primary:hover {
+        background: #9d1aff;
+      }
+      .btn-ghost {
+        background: transparent;
+        color: #888;
+        border: 1px solid #333;
+        padding: 9px 14px;
+        font-size: 11px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn-ghost:hover {
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Decap CMS Script for GitHub Backend -->
+    <script src="https://unpkg.com/decap-cms@^3.1.2/dist/decap-cms.js"></script>
+
+    <div id="token-helper-bar">
+      <button class="token-btn" onclick="openTokenModal()">
+        🔑 Токен GitHub (PAT) / Выйти
+      </button>
+    </div>
+
+    <!-- Modal for GitHub Pages token entry -->
+    <div id="token-modal">
+      <div class="modal-box">
+        <h2>Вход в Decap CMS через GitHub</h2>
+        <p>
+          Для работы на GitHub Pages введите ваш <strong>GitHub Personal Access Token (classic)</strong> с правами <code>repo</code> на репозиторий <strong>Hallizar/hallizar.dev.github.io</strong>.
+        </p>
+        <input
+          id="pat-input"
+          class="modal-input"
+          type="password"
+          placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+          autocomplete="off"
+        />
+        <div style="font-size: 10px; margin-bottom: 16px;">
+          <a
+            href="https://github.com/settings/tokens/new?scopes=repo&description=Hallizar+Blog+CMS"
+            target="_blank"
+            style="color: #bd5aff; text-decoration: none;"
+          >
+            ↗ Создать токен на GitHub (нужна галочка repo)
+          </a>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-ghost" onclick="closeTokenModal()">Закрыть</button>
+          <button class="btn-ghost" onclick="logoutToken()">Очистить токен</button>
+          <button class="btn-primary" onclick="savePatToken()">Войти</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function checkAuthOnLoad() {
+        // Очистка устаревшей сессии Netlify Identity (вход только через токен)
+        localStorage.removeItem('netlify-cms-user');
+
+        const stored = localStorage.getItem('decap-cms-user');
+        if (!stored) {
+          // If no token stored yet, open the modal automatically so user isn't stuck
+          setTimeout(openTokenModal, 400);
+        }
+      }
+
+      function openTokenModal() {
+        const modal = document.getElementById('token-modal');
+        const input = document.getElementById('pat-input');
+        const stored = localStorage.getItem('decap-cms-user');
+        if (stored) {
+          try {
+            input.value = JSON.parse(stored).token || '';
+          } catch (e) {}
+        }
+        modal.style.display = 'flex';
+        input.focus();
+      }
+
+      function closeTokenModal() {
+        document.getElementById('token-modal').style.display = 'none';
+      }
+
+      function savePatToken() {
+        const input = document.getElementById('pat-input');
+        const token = input.value.trim();
+        if (token) {
+          const userObj = { token: token, backendName: 'github' };
+          localStorage.setItem('decap-cms-user', JSON.stringify(userObj));
+          closeTokenModal();
+          window.location.reload();
+        } else {
+          alert('Пожалуйста, вставьте токен GitHub');
+        }
+      }
+
+      function logoutToken() {
+        localStorage.removeItem('decap-cms-user');
+        localStorage.removeItem('netlify-cms-user');
+        closeTokenModal();
+        window.location.reload();
+      }
+
+      window.addEventListener('DOMContentLoaded', checkAuthOnLoad);
+    </script>
+  </body>
+</html>
