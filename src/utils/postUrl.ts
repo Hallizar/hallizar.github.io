@@ -52,23 +52,26 @@ export function getBasePrefix(): string {
 }
 
 /**
- * Канонический путь к ленте блога: всегда начинается с '/', например "/blog"
- * или "/hallizar.dev.github.io/blog".
+ * Канонический путь к ленте блога: всегда начинается с '/' и ЗАКАНЧИВАЕТСЯ на '/',
+ * например "/blog/" или "/hallizar.dev.github.io/blog/".
  * Исключает накопление повторов вида "/blog/blog/blog".
  */
 export function feedPath(): string {
   const prefix = getBasePrefix();
-  return `${prefix}/blog`;
+  return `${prefix}/blog/`;
 }
 
 /**
- * Канонический путь к статье: всегда начинается с '/', например "/blog/<slug>"
- * или "/hallizar.dev.github.io/blog/<slug>".
+ * Канонический путь к статье: всегда начинается с '/' и ЗАКАНЧИВАЕТСЯ на '/',
+ * например "/blog/<slug>/" или "/hallizar.dev.github.io/blog/<slug>/".
+ * Замыкающий слэш важен: страницы генерируются как /blog/<slug>/index.html,
+ * и только с «/» в конце относительные пути внутри статьи резолвятся корректно
+ * (без путаницы с изображениями).
  */
 export function postPath(post: Pick<BlogPost, 'slug'>): string {
   const prefix = getBasePrefix();
   const cleanSlug = encodeURIComponent(decodeURIComponent(post.slug)).replace(/%2F/gi, '/');
-  return `${prefix}/blog/${cleanSlug}`;
+  return `${prefix}/blog/${cleanSlug.replace(/\/+$/, '')}/`;
 }
 
 /**
