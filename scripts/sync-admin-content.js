@@ -24,6 +24,32 @@ function writeJson(file, payload) {
   fs.writeFileSync(file, JSON.stringify(payload, null, 2) + '\n', 'utf8');
 }
 
+// Decap CMS иногда отдаёт list-поле links строкой (JSON), а не массивом —
+// нормализуем оба варианта, чтобы синк не падал.
+function normalizeLinks(raw) {
+  let links = raw;
+  if (typeof links === 'string') {
+    const s = links.trim();
+    if (!s) return [];
+    try {
+      links = JSON.parse(s);
+    } catch {
+      // Не JSON — считаем списком URL через запятую/перевод строки
+      links = s.split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
+    }
+  }
+  if (!Array.isArray(links)) return [];
+  return links
+    .map((l) => {
+      if (typeof l === 'string') return { url: l };
+      if (l && typeof l === 'object' && l.url) {
+        return { label: l.label || '', url: String(l.url) };
+      }
+      return null;
+    })
+    .filter(Boolean);
+}
+
 // ----------------------------------------------------------------------
 // Ads (Decap "ads" collection: one JSON file per banner)
 // ----------------------------------------------------------------------
@@ -80,17 +106,7 @@ function loadPosts() {
           isoDate: dateObj ? dateObj.toISOString() : null,
           image: fm.heroImage ?? fm.image ?? '',
           imageCaption: fm.imageCaption ?? fm.caption ?? '',
-          links: Array.isArray(fm.links)
-            ? fm.links
-                .map((l) => {
-                  if (typeof l === 'string') return { url: l };
-                  if (l && typeof l === 'object' && l.url) {
-                    return { label: l.label || '', url: String(l.url) };
-                  }
-                  return null;
-                })
-                .filter(Boolean)
-            : [],
+          links: normalizeLinks(fm.links),
           readingTime: `${Math.max(1, Math.round(words / 200))} мин чтения`,
           author: { name: 'Hallizar', role: 'Frontend & Systems Engineer', avatar: 'H' },
           views: 0,

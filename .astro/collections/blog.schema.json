@@ -1,77 +1,127 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "properties": {
-    "title": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
-    },
-    "date": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "pubDate": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "updatedDate": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "category": {
-      "type": "string"
-    },
-    "tags": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "heroImage": {
-      "type": "string"
-    },
-    "imageCaption": {
-      "type": "string"
-    },
-    "links": {
-      "type": "array",
-      "items": {
-        "anyOf": [
-          {
-            "type": "string"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "label": {
-                "type": "string"
-              },
-              "url": {
-                "type": "string"
-              }
+  "$ref": "#/definitions/blog",
+  "definitions": {
+    "blog": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "date": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
             },
-            "required": [
-              "url"
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "integer",
+              "format": "unix-time"
+            }
+          ]
+        },
+        "pubDate": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "integer",
+              "format": "unix-time"
+            }
+          ]
+        },
+        "updatedDate": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "integer",
+              "format": "unix-time"
+            }
+          ]
+        },
+        "category": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "heroImage": {
+          "type": "string"
+        },
+        "imageCaption": {
+          "type": "string"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "not": {}
+              },
+              {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string"
+                      },
+                      "url": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
             ]
           }
-        ]
-      }
-    },
-    "draft": {
-      "default": false,
-      "type": "boolean"
-    },
-    "content": {
-      "type": "string"
-    },
-    "$schema": {
-      "type": "string"
+        },
+        "draft": {
+          "type": "boolean",
+          "default": false
+        },
+        "content": {
+          "type": "string"
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "description"
+      ],
+      "additionalProperties": false
     }
   },
-  "required": [
-    "title",
-    "description"
-  ]
+  "$schema": "http://json-schema.org/draft-07/schema#"
 }
