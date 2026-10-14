@@ -32,6 +32,33 @@
     "heroImage": {
       "type": "string"
     },
+    "imageCaption": {
+      "type": "string"
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "url"
+            ]
+          }
+        ]
+      }
+    },
     "draft": {
       "default": false,
       "type": "boolean"
