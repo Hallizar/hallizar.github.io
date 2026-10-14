@@ -56,6 +56,21 @@ const customPages = Array.from(
 export default defineConfig({
   site,
   output: 'static',
+  /**
+   * ВАЖНО: всегда генерируем страницы в виде каталогов (/blog/index.html) и
+   * НЕ редиректим адрес без замыкающего слэша.
+   *
+   * Почему это чинит картинки: страница https://hallizar.ru/blog (БЕЗ «/»)
+   * для браузера выглядит как ФАЙЛ «blog» в корне, и любая относительная
+   * ссылка вида assets/uploads/x.png резолвится в /assets/uploads/x.png,
+   * тогда как со слэшем («/blog/») та же ссылка дала бы /blog/assets/....
+   * Держим href-атрибуты самодостаточными, но при этом канонический формат
+   * адреса — со слэшем, поэтому относительные пути нигде не используются.
+   */
+  trailingSlash: 'ignore',
+  build: {
+    format: 'directory',
+  },
   vite: {
     plugins: [tailwindcss()],
   },
