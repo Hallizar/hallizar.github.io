@@ -2,12 +2,15 @@ import { useState, useMemo } from 'react';
 import { Search, X, Tag, CalendarDays } from 'lucide-react';
 import { BlogPost, AdBannerItem, MetrikaEvent } from '../types';
 import { AdBanner } from './AdBanner';
+import { hashPostPath } from '../utils/postUrl';
 
 interface BlogListProps {
   posts: BlogPost[];
   sidebarAd: AdBannerItem | null;
   onSelectPost: (post: BlogPost) => void;
   onAdEvent?: (event: MetrikaEvent) => void;
+  /** Клик по ссылке статьи: открывает читалку без перезагрузки страницы */
+  onLinkClick?: (e: React.MouseEvent<HTMLAnchorElement>, post: BlogPost) => void;
 }
 
 /** Приводим любое изображение превью к квадратному кропу 1:1. */
@@ -21,7 +24,7 @@ function squareImage(url?: string): string | undefined {
   return url;
 }
 
-export function BlogList({ posts, sidebarAd, onSelectPost, onAdEvent }: BlogListProps) {
+export function BlogList({ posts, sidebarAd, onSelectPost, onAdEvent, onLinkClick }: BlogListProps) {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -108,13 +111,15 @@ export function BlogList({ posts, sidebarAd, onSelectPost, onAdEvent }: BlogList
       ) : (
         <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredPosts.map((post) => (
-            <article
+            <a
               key={post.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => onSelectPost(post)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
+              href={hashPostPath(post)}
+              onClick={(e) => {
+                // ЛКМ без модификаторов — открываем читалку без перезагрузки;
+                // Ctrl/Cmd/Shift-клик остаётся «открыть в новой вкладке».
+                if (onLinkClick) {
+                  onLinkClick(e, post);
+                } else if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
                   e.preventDefault();
                   onSelectPost(post);
                 }
@@ -169,7 +174,7 @@ export function BlogList({ posts, sidebarAd, onSelectPost, onAdEvent }: BlogList
                   <span className="truncate">{post.readingTime}</span>
                 </div>
               </div>
-            </article>
+            </a>
           ))}
         </div>
       )}

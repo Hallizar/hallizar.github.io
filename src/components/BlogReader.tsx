@@ -47,6 +47,18 @@ function parseBlocks(content: string): any[] {
         currentList = null;
       }
       blocks.push({ type: 'h2', content: line.replace('## ', '') });
+    } else if (/^!\[.*\]\(.*\)\s*$/.test(line.trim())) {
+      // Markdown-картинка собственной строки -> блок image (подпись + «Подробнее: ссылка»)
+      if (currentList) {
+        blocks.push(currentList);
+        currentList = null;
+      }
+      const m = line.trim().match(/^!\[(.*?)\]\((.*?)(?:\s+["'](.*)["'])?\)$/);
+      if (m) {
+        blocks.push({ type: 'image', alt: m[1] || '', src: m[2], title: m[3] || '' });
+      } else {
+        blocks.push({ type: 'p', content: line });
+      }
     } else if (line.startsWith('### ')) {
       if (currentList) {
         blocks.push(currentList);
@@ -94,10 +106,10 @@ function parseBlocks(content: string): any[] {
   return blocks;
 }
 
-/** Инлайн-разметка: **жирный**, `код`. */
+/** Инлайн-разметка: **жирный**, `код`, [текст](ссылка). */
 function renderInline(text: string): (string | ReactElement)[] {
   const parts: (string | ReactElement)[] = [];
-  const regex = /(\*\*(.*?)\*\*|`(.*?)`)/g;
+  const regex = /(\*\*(.*?)\*\*|`(.*?)`|\[(.*?)\]\((.*?)\))/g;
   let lastIndex = 0;
   let match;
   let key = 0;
@@ -114,6 +126,19 @@ function renderInline(text: string): (string | ReactElement)[] {
           {match[3]}
         </code>,
       );
+    } else if (match[4] !== undefined && match[5]) {
+      // Markdown-ссылка [текст](url) -> кликабельная ссылка
+      parts.push(
+        <a
+          key={key++}
+          href={normalizeHref(match[5])}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          className="text-(--accent) underline underline-offset-4 hover:opacity-80 break-words"
+        >
+          {match[4]}
+        </a>,
+      );
     }
     lastIndex = regex.lastIndex;
   }
@@ -121,6 +146,30 @@ function renderInline(text: string): (string | ReactElement)[] {
     parts.push(text.slice(lastIndex));
   }
   return parts;
+}
+
+/** Ссылки из markdown могут быть обёрнуты в кавычки/пробелы — чистим и даём протокол. */
+function normalizeHref(raw: string): string {
+  const cleaned = raw.trim().replace(/^["']|["']$/g, '').trim();
+  if (/^https?:\/\//i.test(cleaned) || cleaned.startsWith('/') || cleaned.startsWith('#')) {
+    return cleaned;
+  }
+  return `https://${cleaned}`;
+}
+
+/** Извлекает ссылки (http(s), www.) из обычного текста. */
+function extractUrls(text: string): string[] {
+  const matches = text.match(/https?:\/\/\S+|www\.[^\s)]+\.[^\s)]+/gi);
+  return matches ? matches.map((u) => u.replace(/[)"'.,]+$/, '')) : [];
+}
+
+/** Хост ссылки для компактной подписи: https://gamebanana.com/mods/1 -> gamebanana.com */
+function hostLabel(url: string): string {
+  try {
+    return new URL(normalizeHref(url)).host.replace(/^www\./, '');
+  } catch {
+    return url.length > 60 ? `${url.slice(0, 60)}…` : url;
+  }
 }
 
 export function BlogPostView({
@@ -166,6 +215,37 @@ export function BlogPostView({
   }, [post.id]);
 
   const blocks = parseBlocks(post.content);
+
+  /**
+   * Ссылки картинки: явные (alt/url — ссылка), title-атрибут markdown,
+   * ссылки, «вшитые» в alt (например alt="https://gamebanana.com/mods/463335"),
+   * плюс ссылки из frontmatter post.links.
+   * Возвращает пары { url, label }.
+   */
+  const imageLinks = (b: any): { url: string; label: string }[] => {
+    const urls: string[] = [];
+    if (b.link) urls.push(...extractUrls(String(b.link)));
+    if (b.title) urls.push(...extractUrls(String(b.title)));
+    if (b.alt) urls.push(...extractUrls(String(b.alt)));
+    const result: { url: string; label: string }[] = urls.map((u) => {
+      const url = normalizeHref(u);
+      return { url, label: hostLabel(url) };
+    });
+    for (const l of post.links ?? []) {
+      if (l?.url) {
+        const url = normalizeHref(String(l.url));
+        result.push({ url, label: (l.label || '').trim() || hostLabel(url) });
+      }
+    }
+    // Убираем дубликаты по URL, сохраняя порядок
+    const seen = new Set<string>();
+    return result.filter((x) => (seen.has(x.url) ? false : (seen.add(x.url), true)));
+  };
+
+  // Главное изображение статьи: описание берём из caption/alt, если задан alt
+  const heroCaption = post.imageCaption || '';
+  const heroLinks = imageLinks({ alt: '' });
+
   const mid = Math.ceil(blocks.length / 2);
   const firstHalf = blocks.slice(0, mid);
   const secondHalf = blocks.slice(mid);
@@ -227,6 +307,57 @@ export function BlogPostView({
             <code>{b.content}</code>
           </pre>
         );
+      case 'image': {
+        // Картинка внутри текста: под фото — описание (alt) и ссылки «Подробнее: …»
+        const caption = String(b.alt || '').trim();
+        const urls = imageLinks(b);
+        const isVideo = /\.(mp4|webm)(\?.*)?$/i.test(String(b.src || ''));
+        return (
+          <figure key={idx} className="my-8">
+            {isVideo ? (
+              <video
+                src={normalizeHref(b.src)}
+                controls
+                loop
+                muted
+                playsInline
+                className="w-full h-auto select-none"
+              />
+            ) : (
+              <img
+                src={normalizeHref(b.src)}
+                alt={caption}
+                loading="lazy"
+                className="w-full h-auto select-none"
+                draggable={false}
+              />
+            )}
+            {(caption || urls.length > 0) && (
+              <figcaption className="mt-2.5 text-[12px] leading-relaxed text-(--muted) border-l-2 border-(--line-strong) pl-3">
+                {caption && <span>{caption}</span>}
+                {urls.length > 0 && (
+                  <span className={`inline-flex flex-wrap items-center gap-x-2 gap-y-1 ${caption ? ' mt-1.5 w-full' : ''}`}>
+                    <span className="font-mono uppercase tracking-wider text-[10px] opacity-70 whitespace-nowrap">
+                      Подробнее:
+                    </span>
+                    {urls.map((u, j) => (
+                      <a
+                        key={j}
+                        href={u}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        className="text-(--accent) underline underline-offset-4 hover:opacity-80 break-all"
+                      >
+                        {hostLabel(u)}
+                      </a>
+                    ))}
+                  </span>
+                )}
+              </figcaption>
+            )}
+          </figure>
+        );
+      }
       default:
         return null;
     }
@@ -306,10 +437,44 @@ export function BlogPostView({
         </div>
       </header>
 
-      {/* Главное изображение — без рамок, во всю ширину колонки */}
+      {/* Главное изображение — без рамок, во всю ширину колонки; под фото: описание и ссылки */}
       {post.image && (
         <figure className="my-8">
-          <img src={post.image} alt={post.title} className="rounded-none" draggable={false} />
+          {/\.(mp4|webm)(\?.*)?$/i.test(post.image) ? (
+            <video
+              src={post.image}
+              controls
+              loop
+              muted
+              playsInline
+              className="w-full h-auto select-none"
+            />
+          ) : (
+            <img src={post.image} alt={heroCaption || post.title} className="rounded-none" draggable={false} />
+          )}
+          {(heroCaption || heroLinks.length > 0) && (
+            <figcaption className="mt-2.5 text-[12px] leading-relaxed text-(--muted) border-l-2 border-(--line-strong) pl-3">
+              {heroCaption && <span>{heroCaption}</span>}
+              {heroLinks.length > 0 && (
+                <span className={`inline-flex flex-wrap items-center gap-x-2 gap-y-1 ${heroCaption ? ' mt-1.5 w-full' : ''}`}>
+                  <span className="font-mono uppercase tracking-wider text-[10px] opacity-70 whitespace-nowrap">
+                    Подробнее:
+                  </span>
+                  {heroLinks.map((u, j) => (
+                    <a
+                      key={j}
+                      href={u}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                      className="text-(--accent) underline underline-offset-4 hover:opacity-80 break-all"
+                    >
+                      {hostLabel(u)}
+                    </a>
+                  ))}
+                </span>
+              )}
+            </figcaption>
+          )}
         </figure>
       )}
 

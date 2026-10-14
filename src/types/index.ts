@@ -8,6 +8,10 @@ export interface BlogPost {
   date: string;
   isoDate?: string;
   image?: string;
+  /** Подпись (описание) к главному изображению статьи — показывается в читалке под фото */
+  imageCaption?: string;
+  /** Ссылки на источник с подписью — показываются в читалке под фото: «Подробнее: (ссылка)» */
+  links?: { label?: string; url: string }[];
   readingTime: string;
   author: {
     name: string;

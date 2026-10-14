@@ -72,6 +72,15 @@ export function postPath(post: Pick<BlogPost, 'slug'>): string {
 }
 
 /**
+ * Путь статьи с hash-маркером вида "/blog/<slug>#post/<slug>".
+ * Используется лентой SPA: переход по ссылке на той же странице НЕ вызывает
+ * перезагрузку, и приложение мгновенно открывает читалку с этой статьёй.
+ */
+export function hashPostPath(post: Pick<BlogPost, 'slug'>): string {
+  return `${postPath(post)}#post/${encodeURIComponent(post.slug)}`;
+}
+
+/**
  * Полный абсолютный URL статьи с протоколом и доменом (для буфера обмена / шеринга).
  */
 export function absolutePostUrl(post: Pick<BlogPost, 'slug'>): string {
