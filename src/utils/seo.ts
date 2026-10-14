@@ -283,9 +283,7 @@ export function updateSEOMetadata({ route, post }: UpdateSEOMetadataOptions) {
     const seo = getSEOMetadata({
       title: `${post.title} — Hallizar`,
       description: post.excerpt,
-      // Замыкающий слэш обязателен: страница лежит в /blog/<slug>/index.html,
-      // без «/» в конце относительные пути (изображения) резолвятся неверно.
-      canonicalURL: `${origin}/blog/${post.slug.replace(/\/+$/, '')}/`,
+      canonicalURL: `${origin}/blog/${post.slug}`,
       image: post.image,
       siteUrl: origin,
       type: 'article',
