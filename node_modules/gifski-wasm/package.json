@@ -1,0 +1,59 @@
+{
+  "name": "gifski-wasm",
+  "version": "2.2.0",
+  "description": "Encode GIF images to the max possible quality with JS!",
+  "keywords": [
+    "gif",
+    "image",
+    "encoder",
+    "wasm",
+    "webassembly",
+    "optimise"
+  ],
+  "exports": {
+    ".": "./dist/encode.js",
+    "./multi-thread": "./dist/encode-multi-thread.js",
+    "./cloudflare": "./dist/cloudflare.js",
+    "./node": "./dist/node.js"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "dist/cloudflare.js",
+    "dist/cloudflare.d.ts",
+    "dist/encode.js",
+    "dist/encode.d.ts",
+    "dist/encode-multi-thread.js",
+    "dist/encode-multi-thread.d.ts",
+    "dist/node.js",
+    "dist/node.d.ts",
+    "pkg/gifski_wasm_bg.wasm",
+    "pkg/gifski_wasm_bg.wasm.d.ts",
+    "pkg/gifski_wasm.d.ts",
+    "pkg/gifski_wasm.js",
+    "pkg-parallel/gifski_wasm_bg.wasm",
+    "pkg-parallel/gifski_wasm_bg.wasm.d.ts",
+    "pkg-parallel/gifski_wasm.d.ts",
+    "pkg-parallel/gifski_wasm.js",
+    "pkg-parallel/snippets",
+    "pkg-parallel/package.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jamsinclair/gifski-wasm.git"
+  },
+  "author": "Jamie Sinclair <jamsinclairnz@gmail.com>",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "build": "npm run clean && tsc && rm -f pkg/.gitignore pkg-parallel/.gitignore",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "wasm-feature-detect": "1.6.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "typescript": "^5.5.2"
+  },
+  "type": "module"
+}
