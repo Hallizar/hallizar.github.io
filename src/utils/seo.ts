@@ -84,7 +84,7 @@ export function getSEOMetadata(options: SEOOptions = {}): SEOMetadata {
   const twitterHandle = options.twitterHandle || DEFAULT_TWITTER_HANDLE;
   const noindex = Boolean(options.noindex);
 
-  // 1. Resolve Canonical URL
+  // 1. Resolve Canonical URL (canonical format always ends with a trailing slash)
   let canonicalURL: string;
   if (options.canonicalURL) {
     canonicalURL = typeof options.canonicalURL === 'string'
@@ -94,6 +94,9 @@ export function getSEOMetadata(options: SEOOptions = {}): SEOMetadata {
     canonicalURL = new URL(options.pathname, baseSiteUrl).toString();
   } else {
     canonicalURL = baseSiteUrl;
+  }
+  if (!canonicalURL.endsWith('/')) {
+    canonicalURL = `${canonicalURL}/`;
   }
 
   // 2. Resolve absolute social media image URL
@@ -330,11 +333,11 @@ export function updateSEOMetadata({ route, post }: UpdateSEOMetadataOptions) {
     if (route === 'services') {
       title = 'Халлизар студия — Блог о дизайне и веб-разработке, плагины Figma, веб-сервесы: пакетная сборка гиф,пакетное сжатие с сохранением структуры папки - png,jpeg,webp на самых пиздатых WASM кодировщиках';
       description = 'Инструменты для пакетного создания GIF из серии кадров и оптимизации, сжатия, работающие на 100% локально в браузере без серверов.';
-      pathname = '/services';
+      pathname = '/services/';
     } else if (route === 'about') {
       title = 'О проекте и технологиях — Hallizar';
       description = 'Блог о дизайне и веб-разработке. Плагины Figma и веб-сервисы: пакетная сборка GIF, сжатие PNG, JPEG, WebP с сохранением структуры папок на WASM-кодировщиках.';
-      pathname = '/about';
+      pathname = '/about/';
     }
 
     const seo = getSEOMetadata({

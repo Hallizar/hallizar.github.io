@@ -9,6 +9,13 @@ import path from 'node:path';
 const site = 'https://hallizar.ru';
 
 /**
+ * Canonical URL builder: every page URL ALWAYS ends with a trailing slash.
+ */
+function canonicalUrl(...segments) {
+  return `${site}/${segments.join('/')}/`;
+}
+
+/**
  * Dynamically extract all blog post slugs from Astro Content Collections (src/content/posts)
  */
 function getBlogPostUrls() {
@@ -18,7 +25,7 @@ function getBlogPostUrls() {
   return fs
     .readdirSync(postsDir)
     .filter((file) => file.endsWith('.md') || file.endsWith('.mdx'))
-    .map((file) => `${site}/blog/${file.replace(/\.(md|mdx)$/, '')}`);
+    .map((file) => canonicalUrl('blog', file.replace(/\.(md|mdx)$/, '')));
 }
 
 /**
@@ -26,9 +33,9 @@ function getBlogPostUrls() {
  */
 function getServiceUrls() {
   const baseServices = [
-    `${site}/services`,
-    `${site}/services/gif-studio`,
-    `${site}/services/webp-converter`,
+    canonicalUrl('services'),
+    canonicalUrl('services', 'gif-studio'),
+    canonicalUrl('services', 'webp-converter'),
   ];
   const servicesDir = path.resolve('src/content/services');
   if (!fs.existsSync(servicesDir)) return baseServices;
@@ -36,7 +43,7 @@ function getServiceUrls() {
   const dynamicServices = fs
     .readdirSync(servicesDir)
     .filter((file) => file.endsWith('.md') || file.endsWith('.mdx') || file.endsWith('.json'))
-    .map((file) => `${site}/services/${file.replace(/\.(md|mdx|json)$/, '')}`);
+    .map((file) => canonicalUrl('services', file.replace(/\.(md|mdx|json)$/, '')));
 
   return Array.from(new Set([...baseServices, ...dynamicServices]));
 }
@@ -44,8 +51,8 @@ function getServiceUrls() {
 // Main static routes to index
 const staticRoutes = [
   `${site}/`,
-  `${site}/blog`,
-  `${site}/about`,
+  canonicalUrl('blog'),
+  canonicalUrl('about'),
 ];
 
 // Combined list of all dynamically indexed pages from collections and routes
@@ -57,17 +64,15 @@ export default defineConfig({
   site,
   output: 'static',
   /**
-   * ВАЖНО: всегда генерируем страницы в виде каталогов (/blog/index.html) и
-   * НЕ редиректим адрес без замыкающего слэша.
-   *
-   * Почему это чинит картинки: страница https://hallizar.ru/blog (БЕЗ «/»)
-   * для браузера выглядит как ФАЙЛ «blog» в корне, и любая относительная
-   * ссылка вида assets/uploads/x.png резолвится в /assets/uploads/x.png,
-   * тогда как со слэшем («/blog/») та же ссылка дала бы /blog/assets/....
-   * Держим href-атрибуты самодостаточными, но при этом канонический формат
-   * адреса — со слэшем, поэтому относительные пути нигде не используются.
+   * ВАЖНО: «always» — канонический формат всех адресов со замыкающим слэшем.
+   * При build.format:'directory' страницы генерируются как /blog/<slug>/index.html,
+   * а хостинг (Netlify/GH Pages) автоматически редиректит запрос без «/» на
+   * адрес с «/». Это чинит картинки: страница https://hallizar.ru/blog/ (СО слэшем)
+   * для браузера выглядит как КАТАЛОГ, и относительная ссылка вида
+   * assets/uploads/x.png резолвится в /blog/assets/uploads/x.png. Без слэша
+   * («/blog») браузер считал бы это ФАЙЛОМ в корне и ломал относительные пути.
    */
-  trailingSlash: 'ignore',
+  trailingSlash: 'always',
   build: {
     format: 'directory',
   },
@@ -80,7 +85,12 @@ export default defineConfig({
       filter: (page) => !page.includes('/admin'),
       customPages,
       serialize(item) {
-        if (item.url === `${site}/` || item.url === `${site}/blog`) {
+        // Канонический формат всех URL в sitemap — со замыкающим слэшем
+        // (кроме корня сайта, где он уже есть).
+        if (!item.url.endsWith('/') && item.url !== `${site}/`) {
+          item.url = `${item.url}/`;
+        }
+        if (item.url === `${site}/` || item.url === `${site}/blog/`) {
           item.changefreq = 'daily';
           item.priority = 1.0;
         } else if (item.url.includes('/services')) {
