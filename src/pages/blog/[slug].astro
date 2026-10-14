@@ -17,19 +17,22 @@ const allPosts = (await getCollection('posts', ({ data }) => !data.draft))
   .map((p) => ({ p, d: p.data.pubDate ?? p.data.date ?? new Date(0) }))
   .sort((a, b) => b.d.getTime() - a.d.getTime());
 
+// Копия поста: ниже правим post.body для рендера, но НЕ мутируем объект
+// из getCollection() — он переиспользуется другими страницами (лента, SEO).
 const { post } = Astro.props;
+const workPost = { ...post };
 
 // Если hero не задан, первая картинка из тела становится главным изображением
 // (показывается сверху без рамки) и убирается из текста, чтобы не дублироваться.
-const rawBody = post.body ?? '';
+const rawBody = workPost.body ?? '';
 // ищем первую картинку в теле: как figure/изображение на отдельной строке
 const bodyImageMatch = rawBody.match(/(^|\n)\s*!?\[[^\]]*\]\(\s*(https?:\/\/[^)\s]+)[^)\s]*\)/);
 const firstBodyImage = bodyImageMatch ? bodyImageMatch[2] : undefined;
-if (!post.data.heroImage && firstBodyImage) {
+if (!workPost.data.heroImage && firstBodyImage) {
   // убираем её из тела — она будет показана сверху без рамки
-  post.body = rawBody.replace(bodyImageMatch![0], '').trim();
+  workPost.body = rawBody.replace(bodyImageMatch![0], '').trim();
 }
-const { Content } = await render(post);
+const { Content } = await render(workPost);
 const { title, description, heroImage, category, tags } = post.data;
 const mainImage = heroImage || firstBodyImage;
 const pubDate = post.data.pubDate ?? post.data.date ?? new Date();
@@ -107,7 +110,7 @@ function formatDate(d: Date): string {
         {/\.(mp4|webm)(\?.*)?$/i.test(mainImage) ? (
           <video src={mainImage} autoplay loop muted playsinline class="w-full h-auto object-cover rounded-2xl" />
         ) : (
-          <img src={mainImage} alt={title} loading="eager" decoding="async" class="w-full h-auto object-cover rounded-2xl" />
+          <img src={mainImage} alt={title} loading="eager" decoding="async" referrerpolicy="no-referrer" class="w-full h-auto object-cover rounded-2xl" />
         )}
       </figure>
     )}
@@ -115,9 +118,88 @@ function formatDate(d: Date): string {
     <AdBanner slot="in-article" />
 
     <!-- Тело статьи -->
-    <div class="prose-reader">
+    <div class="prose-reader" id="article-body">
       <Content />
     </div>
+
+    <script is:inline>
+      // Обработка картинок в тексте статьи на клиенте (после сборки Astro
+      // правки HTML-вывода markdown были бы хрупкими).
+      // 1) Если alt-текст картинки — это ссылка («источник» изображения),
+      //    картинка становится кликабельной и ведёт на этот источник.
+      // 2) Под картинкой показывается подпись: alt + title из markdown ![alt](src "title").
+      // 3) referrerpolicy="no-referrer" — некоторые CDN (например images.openai.com)
+      //    отдают картинки только без Referer или с «своего» домена.
+      (function () {
+        var root = document.getElementById('article-body');
+        if (!root) return;
+        var imgs = root.querySelectorAll('img');
+        for (var i = 0; i < imgs.length; i++) {
+          var img = imgs[i];
+          img.setAttribute('referrerpolicy', 'no-referrer');
+          img.setAttribute('loading', 'lazy');
+          img.setAttribute('decoding', 'async');
+
+          var alt = (img.getAttribute('alt') || '').trim();
+          // title из markdown ![alt](src "title") часто используют для ссылки-источника
+          var titleAttr = (img.getAttribute('title') || '').trim();
+          var linkMatch = alt.match(/https?:\/\/[^\s"']+/) || titleAttr.match(/https?:\/\/[^\s"']+/);
+          var captionText = alt.replace(/https?:\/\/[^\s"']+/g, '').replace(/\s{2,}/g, ' ').trim();
+          // если title — это просто URL, он уже попадёт в ссылку, а не в подпись
+          var capExtra = /^https?:\/\//.test(titleAttr) ? '' : titleAttr;
+
+          var figure = img.closest('figure') || (function () {
+            // markdown-картинка без figure: оборачиваем <p><img></p> в <figure>
+            var p = img.closest('p');
+            if (p && !p.textContent.trim() && !p.querySelector('a')) {
+              var f = document.createElement('figure');
+              p.replaceWith(f);
+              f.appendChild(img);
+              return f;
+            }
+            return null;
+          })();
+
+          // Ссылка под картинкой, если в alt указан URL источника
+          if (linkMatch) {
+            var href = linkMatch[0].replace(/[)\]».,;]+$/, '');
+            if (!img.closest('a')) {
+              var a = document.createElement('a');
+              a.href = href;
+              a.target = '_blank';
+              a.rel = 'noopener noreferrer';
+              a.className = 'article-img-link';
+              a.setAttribute('aria-label', 'Открыть источник изображения');
+              if (figure) { figure.insertBefore(a, img); } else { img.replaceWith(a); }
+              a.appendChild(img);
+            }
+          }
+
+          // Подпись (figcaption): alt-текст + title из markdown (если это не URL)
+          var capParts = [];
+          if (captionText) capParts.push(captionText);
+          if (capExtra) capParts.push(capExtra);
+          var capText = capParts.join(' — ');
+          if (capText && figure && !figure.querySelector('figcaption')) {
+            var cap = document.createElement('figcaption');
+            if (linkMatch) {
+              var srcName = '';
+              try { srcName = new URL(linkMatch[0]).hostname.replace(/^www\./, ''); } catch (e) {}
+              var alink = document.createElement('a');
+              alink.href = linkMatch[0].replace(/[)\]».,;]+$/, '');
+              alink.target = '_blank';
+              alink.rel = 'noopener noreferrer';
+              alink.textContent = srcName ? 'Источник: ' + srcName : 'Источник';
+              cap.appendChild(document.createTextNode(capText + ' · '));
+              cap.appendChild(alink);
+            } else {
+              cap.textContent = capText;
+            }
+            figure.appendChild(cap);
+          }
+        }
+      })();
+    </script>
 
     <!-- Теги -->
     {tags && tags.length > 0 && (

@@ -1,0 +1,164 @@
+<!DOCTYPE html><html lang="ru"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#050507"><meta name="color-scheme" content="dark"><meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"><!-- Favicon --><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="alternate icon" type="image/svg+xml" href="/logo.svg"><!-- Google Fonts --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet"><!-- SEO.astro: Dynamic Build-time Canonical, OG, Twitter & JSON-LD via getSEOMetadata --><!-- Primary Meta Tags --><title>Зачем я завел этот блог? (Спойлер: надоело держать всё в папке projects/final_v2) — Hallizar</title> <meta name="title" content="Зачем я завел этот блог? (Спойлер: надоело держать всё в папке projects/final_v2) — Hallizar"> <meta name="description" content="Я устал делать это молча."> <link rel="canonical" href="https://hallizar.ru/blog/browser-wasm-gif-encoding/"> <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"> <!-- Open Graph / VK / Telegram / Facebook --> <meta property="og:type" content="article"> <meta property="og:url" content="https://hallizar.ru/blog/browser-wasm-gif-encoding/"> <meta property="og:title" content="Зачем я завел этот блог? (Спойлер: надоело держать всё в папке projects/final_v2) — Hallizar"> <meta property="og:description" content="Я устал делать это молча."> <meta property="og:image" content="https://hallizar.ru/assets/uploads/1post.jpg"> <meta property="og:image:alt" content="Зачем я завел этот блог? (Спойлер: надоело держать всё в папке projects/final_v2) — Hallizar"> <meta property="og:site_name" content="Халлизар студия"> <meta property="og:locale" content="ru_RU">  <meta property="article:published_time" content="2026-09-28T10:00:00.000Z"> <meta property="article:modified_time" content="2026-09-28T10:00:00.000Z"> <meta property="article:author" content="Hallizar"> <meta property="article:section" content="Информация"> <meta property="article:tag" content="Другое"><meta property="article:tag" content="Своим">  <!-- Twitter / X Card --> <meta name="twitter:card" content="summary_large_image"> <meta name="twitter:url" content="https://hallizar.ru/blog/browser-wasm-gif-encoding/"> <meta name="twitter:title" content="Зачем я завел этот блог? (Спойлер: надоело держать всё в папке projects/final_v2) — Hallizar"> <meta name="twitter:description" content="Я устал делать это молча."> <meta name="twitter:image" content="https://hallizar.ru/assets/uploads/1post.jpg"> <meta name="twitter:image:alt" content="Зачем я завел этот блог? (Спойлер: надоело держать всё в папке projects/final_v2) — Hallizar"> <meta name="twitter:site" content="@hallizar"> <meta name="twitter:creator" content="@hallizar"> <!-- Sitemap Reference --> <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap-index.xml"> <!-- Schema.org JSON-LD Structured Data (100% SSG Native build-time render) --> <script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Зачем я завел этот блог? (Спойлер: надоело держать всё в папке projects/final_v2) — Hallizar","description":"Я устал делать это молча.","image":["https://hallizar.ru/assets/uploads/1post.jpg"],"datePublished":"2026-09-28T10:00:00.000Z","dateModified":"2026-09-28T10:00:00.000Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://hallizar.ru/blog/browser-wasm-gif-encoding/"},"author":{"@type":"Person","name":"Hallizar","url":"https://hallizar.ru"},"publisher":{"@type":"Organization","name":"Халлизар студия","url":"https://hallizar.ru","logo":{"@type":"ImageObject","url":"https://hallizar.ru/favicon.svg"}},"keywords":"Другое, Своим","articleSection":"Информация","inLanguage":"ru-RU"}</script><!-- Global Yandex RSN SDK Loader: loads context.js once in document <head> --><!-- Yandex RSN (РСЯ) SDK Asynchronous Loader --><script>
+  (function () {
+    if (typeof window === 'undefined') return;
+
+    // 1. Initialize callback queue for Yandex Ads Context (Ya.Context.AdvManager)
+    window.yaContextCb = window.yaContextCb || [];
+
+    // 2. Prevent duplicate script loads in the document <head>
+    const SCRIPT_ID = 'yandex-ads-context-loader';
+    if (!document.getElementById(SCRIPT_ID)) {
+      const script = document.createElement('script');
+      script.id = SCRIPT_ID;
+      script.src = 'https://yandex.ru/ads/system/context.js';
+      script.async = true;
+      script.crossOrigin = 'anonymous';
+
+      // Ensure insertion in <head>
+      const targetHead = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+      targetHead.appendChild(script);
+    }
+  })();
+</script><!-- Slot for additional page-specific head elements --><link rel="stylesheet" href="/_astro/blog-qwen.gj75DDiU.css"></head> <body class="min-h-screen bg-[#050507] text-[#e0e0e6] antialiased selection:bg-[#8a00ff] selection:text-white">  <script>
+    // Тема до первой отрисовки — без "мигания"
+    (function () {
+      try {
+        var saved = localStorage.getItem('hallizar-theme');
+        var mode = saved === 'light' || saved === 'dark'
+          ? saved
+          : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        var root = document.documentElement;
+        root.dataset.theme = mode;
+        root.classList.toggle('theme-light', mode === 'light');
+        root.classList.toggle('theme-dark', mode === 'dark');
+      } catch (e) {}
+    })();
+  </script><div class="mx-auto max-w-3xl px-4 py-6 reader-enter"> <aside class="ad-slot-wrapper relative my-4 w-full min-h-[90px] overflow-hidden rounded-xs border border-[#2a2a34] bg-[#0a0a0f] text-[#e0e0e6] transition-colors hover:border-[#8a00ff]/60 " data-slot="top-header" data-ad-id="R-A-2849102-1">  <!-- 1. Yandex RSN RTB Slot Container (Lazily rendered via IntersectionObserver) --><div class="flex h-full w-full flex-col justify-between p-2"> <div class="mb-1 flex items-center justify-between text-[9px] font-mono text-[#6c6c76]"> <span class="uppercase tracking-wider">РСЯ · Header (728×90)</span> <span class="text-[#848490]">Яндекс Директ</span> </div> <div id="yandex_rtb_top-header_unit" class="yandex-ad-container flex min-h-[90px] w-full flex-1 items-center justify-center transition-opacity duration-300" data-rtb-block-id="R-A-2849102-1" data-render-to="yandex_rtb_top-header_unit" data-slot-name="top-header"> <!-- Lightweight Skeleton / Loading Placeholder --><div class="ad-skeleton flex items-center gap-2 font-mono text-xs text-[#52525e]"> <span class="inline-block h-2 w-2 animate-ping rounded-full bg-[#8a00ff]/60"></span> <span>Загрузка рекламного блока...</span> </div> </div> </div>  </aside><script type="module">function e(){if(typeof window>`u`)return;window.yaContextCb=window.yaContextCb||[];let e=document.querySelectorAll(`.yandex-ad-container[data-rtb-block-id]:not([data-ad-initialized="true"])`);if(e.length===0)return;let t=new IntersectionObserver(e=>{e.forEach(e=>{if(!e.isIntersecting)return;let n=e.target;n.setAttribute(`data-ad-initialized`,`true`),t.unobserve(n);let r=n.getAttribute(`data-rtb-block-id`),i=n.getAttribute(`data-render-to`)||n.id;r&&i&&window.yaContextCb.push(()=>{if(window.Ya!==void 0&&window.Ya.Context&&window.Ya.Context.AdvManager)window.Ya.Context.AdvManager.render({blockId:r,renderTo:i,darkTheme:!0,async:!0,onRender:()=>{n.classList.add(`ad-rendered`);let e=n.querySelector(`.ad-skeleton`);e&&e.remove()}});else{let e=n.querySelector(`.ad-skeleton`);e&&(e.innerHTML=`<span class="text-[10px] text-[#42424c]">Рекламный блок РСЯ</span>`)}})})},{rootMargin:`150px 0px`,threshold:.05});e.forEach(e=>t.observe(e))}document.readyState===`loading`?document.addEventListener(`DOMContentLoaded`,e):e(),document.addEventListener(`astro:page-load`,e);</script> <!-- Верхняя панель: назад + дата --> <div class="flex items-center justify-between gap-3 mb-6 mt-2"> <a href="/blog" class="qwen-chip !text-xs hover:!border-(--accent) hover:!text-(--accent)">← К ленте</a> <time class="text-[11px] font-mono text-(--muted)" datetime="2026-09-28T10:00:00.000Z">28 сентября 2026 г.</time> </div> <!-- Заголовок --> <header class="mb-8"> <p class="text-[11px] font-mono uppercase tracking-[0.2em] text-(--accent)">Информация</p> <h1 class="mt-3 text-3xl sm:text-4xl font-bold leading-[1.15] tracking-tight text-(--text)">Зачем я завел этот блог? (Спойлер: надоело держать всё в папке projects/final_v2)</h1> <p class="mt-4 text-base sm:text-lg text-(--muted) leading-relaxed">Я устал делать это молча.</p> <!-- Кнопка «Поделиться»: копирует адрес ИМЕННО этой статьи --> <div class="mt-6 pb-6 border-b border-(--line) flex items-center justify-between gap-4"> <button id="share-btn" data-url="https://hallizar.ru/blog/browser-wasm-gif-encoding/" class="qwen-chip !py-2 !px-4 !text-xs transition-all hover:!border-(--accent) hover:!text-(--accent)" aria-label="Скопировать ссылку на статью">
+Поделиться ссылкой
+</button> </div> </header> <!-- Главное изображение / анимация — БЕЗ рамок, во всю ширину --> <figure class="my-8 overflow-hidden rounded-2xl"> <img src="/assets/uploads/1post.jpg" alt="Зачем я завел этот блог? (Спойлер: надоело держать всё в папке projects/final_v2)" loading="eager" decoding="async" referrerpolicy="no-referrer" class="w-full h-auto object-cover rounded-2xl"> </figure> <aside class="ad-slot-wrapper relative my-4 w-full min-h-[160px] md:min-h-[250px] overflow-hidden rounded-xs border border-[#2a2a34] bg-[#0a0a0f] text-[#e0e0e6] transition-colors hover:border-[#8a00ff]/60 " data-slot="in-article" data-ad-id="fast-edge-cdn-promo">  <!-- 1. Yandex RSN RTB Slot Container (Lazily rendered via IntersectionObserver) --><div class="flex h-full w-full flex-col justify-between p-2"> <div class="mb-1 flex items-center justify-between text-[9px] font-mono text-[#6c6c76]"> <span class="uppercase tracking-wider">РСЯ · Контекст (336×280)</span> <span class="text-[#848490]">Яндекс Директ</span> </div> <div id="yandex_rtb_in-article_fast-edge-cdn-promo" class="yandex-ad-container flex min-h-[90px] w-full flex-1 items-center justify-center transition-opacity duration-300" data-rtb-block-id="R-A-2849102-3" data-render-to="yandex_rtb_in-article_fast-edge-cdn-promo" data-slot-name="in-article"> <!-- Lightweight Skeleton / Loading Placeholder --><div class="ad-skeleton flex items-center gap-2 font-mono text-xs text-[#52525e]"> <span class="inline-block h-2 w-2 animate-ping rounded-full bg-[#8a00ff]/60"></span> <span>Загрузка рекламного блока...</span> </div> </div> </div>  </aside> <!-- Тело статьи --> <div class="prose-reader" id="article-body"> <p>Привет! Настало время сделать то, до чего обычно никогда не доходят руки — начать систематически делиться тем, что я делаю, проектирую и собираю.</p>
+<p>В ежедневной работе дизайнером продакшена и разработчиком я постоянно сталкиваюсь с задачами, где стандартных инструментов Figma или обычной верстки просто не хватает. Приходится изобретать свои решения: писать плагины для автоматизации рутинного ресайза баннеров, собирать кастомные HTML5-анимации, проектировать логику для Match-3 игр или лезть в серверные скрипты на C++ и Lua, когда хочется покопаться в архитектуре игр.</p>
+<p>Со временем таких «велосипедов», оптимизаций и плагинов накапливается много. И я понял: хранить этот опыт только у себя в голове и на диске — непрактично.</p>
+<h3 id="о-чём-я-буду-здесь-писать">О чём я буду здесь писать</h3>
+<p>Этот блог — не сборник абстрактной теории и не галерея глянцевых картинок. Это дневник инженера и дизайнера, где я буду делиться конкретными решениями и разработками:</p>
+<ul>
+<li>DesignOps и плагины: Как перестать тратить часы на рутину и заставить код делать ресайзы, сборку и экспорт за вас (делиться скриптами и логикой их работы).</li>
+<li>Интерактив и HTML5: Продвинутые CSS-анимации, оптимизация графики и сборка баннеров для рекламных платформ без потери качества.</li>
+<li>Геймдев и МОДИНГ! А так же системный дизайн: Архитектура игровых механик, расчет баланса, прототипирование и эксперименты с серверами.</li>
+<li>Визуальные концепты: Практический разбор моих концептуальных проектов, поиска необычных визуальных решений.</li>
+</ul>
+<h3 id="для-кого-это">Для кого это</h3>
+<p>Для тех, кто любит делать, а не просто обсуждать тренды. Если вы верстаете, проектируете интерфейсы, разрабатываете игры или пытаетесь автоматизировать свой workflow — надеюсь, мои кейсы и инструменты сэкономят вам немного времени и нервов.</p>
+<p>Погнали. В следующих постах сразу перейдём к практике — покажу пару плагинов и решений, которые сильно упростили мне жизнь в продакшене.</p>
+ </div> <script>
+      // Обработка картинок в тексте статьи на клиенте (после сборки Astro
+      // правки HTML-вывода markdown были бы хрупкими).
+      // 1) Если alt-текст картинки — это ссылка («источник» изображения),
+      //    картинка становится кликабельной и ведёт на этот источник.
+      // 2) Под картинкой показывается подпись: alt + title из markdown ![alt](src "title").
+      // 3) referrerpolicy="no-referrer" — некоторые CDN (например images.openai.com)
+      //    отдают картинки только без Referer или с «своего» домена.
+      (function () {
+        var root = document.getElementById('article-body');
+        if (!root) return;
+        var imgs = root.querySelectorAll('img');
+        for (var i = 0; i < imgs.length; i++) {
+          var img = imgs[i];
+          img.setAttribute('referrerpolicy', 'no-referrer');
+          img.setAttribute('loading', 'lazy');
+          img.setAttribute('decoding', 'async');
+
+          var alt = (img.getAttribute('alt') || '').trim();
+          // title из markdown ![alt](src "title") часто используют для ссылки-источника
+          var titleAttr = (img.getAttribute('title') || '').trim();
+          var linkMatch = alt.match(/https?:\/\/[^\s"']+/) || titleAttr.match(/https?:\/\/[^\s"']+/);
+          var captionText = alt.replace(/https?:\/\/[^\s"']+/g, '').replace(/\s{2,}/g, ' ').trim();
+          // если title — это просто URL, он уже попадёт в ссылку, а не в подпись
+          var capExtra = /^https?:\/\//.test(titleAttr) ? '' : titleAttr;
+
+          var figure = img.closest('figure') || (function () {
+            // markdown-картинка без figure: оборачиваем <p><img></p> в <figure>
+            var p = img.closest('p');
+            if (p && !p.textContent.trim() && !p.querySelector('a')) {
+              var f = document.createElement('figure');
+              p.replaceWith(f);
+              f.appendChild(img);
+              return f;
+            }
+            return null;
+          })();
+
+          // Ссылка под картинкой, если в alt указан URL источника
+          if (linkMatch) {
+            var href = linkMatch[0].replace(/[)\]».,;]+$/, '');
+            if (!img.closest('a')) {
+              var a = document.createElement('a');
+              a.href = href;
+              a.target = '_blank';
+              a.rel = 'noopener noreferrer';
+              a.className = 'article-img-link';
+              a.setAttribute('aria-label', 'Открыть источник изображения');
+              if (figure) { figure.insertBefore(a, img); } else { img.replaceWith(a); }
+              a.appendChild(img);
+            }
+          }
+
+          // Подпись (figcaption): alt-текст + title из markdown (если это не URL)
+          var capParts = [];
+          if (captionText) capParts.push(captionText);
+          if (capExtra) capParts.push(capExtra);
+          var capText = capParts.join(' — ');
+          if (capText && figure && !figure.querySelector('figcaption')) {
+            var cap = document.createElement('figcaption');
+            if (linkMatch) {
+              var srcName = '';
+              try { srcName = new URL(linkMatch[0]).hostname.replace(/^www\./, ''); } catch (e) {}
+              var alink = document.createElement('a');
+              alink.href = linkMatch[0].replace(/[)\]».,;]+$/, '');
+              alink.target = '_blank';
+              alink.rel = 'noopener noreferrer';
+              alink.textContent = srcName ? 'Источник: ' + srcName : 'Источник';
+              cap.appendChild(document.createTextNode(capText + ' · '));
+              cap.appendChild(alink);
+            } else {
+              cap.textContent = capText;
+            }
+            figure.appendChild(cap);
+          }
+        }
+      })();
+    </script><!-- Теги --> <footer class="mt-10 pt-6 border-t border-(--line) flex flex-wrap gap-2"> <a href="/blog/?tag=%D0%94%D1%80%D1%83%D0%B3%D0%BE%D0%B5" class="qwen-chip !cursor-default">#Другое</a><a href="/blog/?tag=%D0%A1%D0%B2%D0%BE%D0%B8%D0%BC" class="qwen-chip !cursor-default">#Своим</a> </footer> <!-- Следующий пост по хронологии --> <section class="mt-10 mb-6"> <div class="rounded-2xl border border-dashed border-(--line-strong) p-6 text-center text-sm text-(--muted)">
+Это самый новый материал ленты. <a href="/blog" class="text-(--accent) hover:underline underline-offset-4">Вернуться к ленте</a> </div> <div class="mt-6 text-[11px] font-mono text-(--muted)"> <a href="/blog/test-post/" class="hover:text-(--accent) transition-colors">
+← Предыдущий: Тестовая запись: проверка сборки Astro, Decap CM…
+</a> </div> </section> </div> <script>
+    // Копирование ссылки на СТАТЬЮ (а не на сайт) + Web Share на мобильных
+    (function () {
+      var btn = document.getElementById('share-btn');
+      if (!btn) return;
+      var url = btn.getAttribute('data-url') || window.location.href;
+      btn.addEventListener('click', function () {
+        var done = function () {
+          btn.textContent = 'Ссылка скопирована ✓';
+          setTimeout(function () { btn.textContent = 'Поделиться ссылкой'; }, 2500);
+        };
+        if (navigator.share) {
+          navigator.share({ title: document.title, url: url }).catch(function () {});
+          return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(done).catch(function () { fallback(); });
+        } else {
+          fallback();
+        }
+        function fallback() {
+          var ta = document.createElement('textarea');
+          ta.value = url;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); done(); } catch (e) {}
+          document.body.removeChild(ta);
+        }
+      });
+    })();
+  </script> </body> </html>
