@@ -1,54 +1,60 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "properties": {
-    "id": {
-      "type": "string"
-    },
-    "title": {
-      "type": "string"
-    },
-    "slot": {
-      "type": "string",
-      "enum": [
-        "sidebar",
-        "in-article",
-        "top-header"
-      ]
-    },
-    "imageUrl": {
-      "type": "string"
-    },
-    "targetUrl": {
-      "type": "string",
-      "format": "uri"
-    },
-    "active": {
-      "default": true,
-      "type": "boolean"
-    },
-    "startDate": {
-      "type": "string"
-    },
-    "endDate": {
-      "type": "string"
-    },
-    "priority": {
-      "default": 1,
-      "type": "number"
-    },
-    "rtbBlockId": {
-      "type": "string"
-    },
-    "$schema": {
-      "type": "string"
+  "$ref": "#/definitions/ads",
+  "definitions": {
+    "ads": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "slot": {
+          "type": "string",
+          "enum": [
+            "sidebar",
+            "in-article",
+            "top-header"
+          ]
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "targetUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "active": {
+          "type": "boolean",
+          "default": true
+        },
+        "startDate": {
+          "type": "string"
+        },
+        "endDate": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "number",
+          "default": 1
+        },
+        "rtbBlockId": {
+          "type": "string"
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "slot",
+        "imageUrl",
+        "targetUrl"
+      ],
+      "additionalProperties": false
     }
   },
-  "required": [
-    "id",
-    "title",
-    "slot",
-    "imageUrl",
-    "targetUrl"
-  ]
+  "$schema": "http://json-schema.org/draft-07/schema#"
 }

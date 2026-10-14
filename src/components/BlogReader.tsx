@@ -340,15 +340,15 @@ export function BlogPostView({
                     <span className="font-mono uppercase tracking-wider text-[10px] opacity-70 whitespace-nowrap">
                       Подробнее:
                     </span>
-                    {urls.map((u, j) => (
+                    {urls.map((l, j) => (
                       <a
                         key={j}
-                        href={u}
+                        href={l.url}
                         target="_blank"
                         rel="noopener noreferrer nofollow"
                         className="text-(--accent) underline underline-offset-4 hover:opacity-80 break-all"
                       >
-                        {hostLabel(u)}
+                        {l.label}
                       </a>
                     ))}
                   </span>
@@ -460,15 +460,15 @@ export function BlogPostView({
                   <span className="font-mono uppercase tracking-wider text-[10px] opacity-70 whitespace-nowrap">
                     Подробнее:
                   </span>
-                  {heroLinks.map((u, j) => (
+                  {heroLinks.map((l, j) => (
                     <a
                       key={j}
-                      href={u}
+                      href={l.url}
                       target="_blank"
                       rel="noopener noreferrer nofollow"
                       className="text-(--accent) underline underline-offset-4 hover:opacity-80 break-all"
                     >
-                      {hostLabel(u)}
+                      {l.label}
                     </a>
                   ))}
                 </span>

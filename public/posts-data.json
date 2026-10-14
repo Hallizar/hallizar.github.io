@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-14T14:02:13.241Z",
+  "generated": "2026-10-14T15:30:10.613Z",
   "posts": [
     {
       "id": "2026-10-13-предательства-которые-никто-не-мог-ожидать",
@@ -19,6 +19,21 @@
       "date": "13 октября 2026 г.",
       "isoDate": "2026-10-13T12:25:00.000Z",
       "image": "/assets/uploads/12312.png",
+      "imageCaption": "Игры после декомпиляции: как цифровое искусство может превратиться в конструктор без границ",
+      "links": [
+        {
+          "label": "Super Mario 64 decomp",
+          "url": "https://supermario64free.github.io/"
+        },
+        {
+          "label": "OpenMW — движок с нуля",
+          "url": "https://openmw.org/"
+        },
+        {
+          "label": "WebAssembly",
+          "url": "https://webassembly.org/docs/portability/"
+        }
+      ],
       "readingTime": "18 мин чтения",
       "author": {
         "name": "Hallizar",
@@ -42,6 +57,8 @@
       "date": "3 октября 2026 г.",
       "isoDate": "2026-10-03T07:00:00.000Z",
       "image": "/assets/uploads/1post.jpg",
+      "imageCaption": "",
+      "links": [],
       "readingTime": "1 мин чтения",
       "author": {
         "name": "Hallizar",
@@ -66,6 +83,8 @@
       "date": "30 сентября 2026 г.",
       "isoDate": "2026-09-30T09:00:00.000Z",
       "image": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&auto=format&fit=crop&q=80",
+      "imageCaption": "",
+      "links": [],
       "readingTime": "1 мин чтения",
       "author": {
         "name": "Hallizar",

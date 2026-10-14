@@ -6,6 +6,8 @@ declare module 'astro:content' {
     boolean: () => any;
     enum: (values: string[]) => any;
     array: (inner: any) => any;
+    union: (options: any[]) => any;
+    optional: () => any;
     coerce: { date: () => any };
   };
 
@@ -15,10 +17,6 @@ declare module 'astro:content' {
 
 declare module 'astro/config' {
   export function defineConfig(config: any): any;
-}
-
-declare module '@astrojs/tailwind' {
-  export default function tailwind(): any;
 }
 
 declare module '@astrojs/react' {
