@@ -1,7 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /admin/
-Disallow: /admin
-
-Sitemap: https://hallizar.ru/sitemap.xml
-Sitemap: https://hallizar.ru/sitemap-index.xml

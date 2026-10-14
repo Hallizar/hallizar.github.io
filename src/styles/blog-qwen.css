@@ -215,26 +215,6 @@
   font-size: 12px;
   color: var(--muted);
 }
-/* Ссылка-источник внутри подписи — кликабельна */
-.prose-reader figcaption a {
-  color: var(--accent);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.prose-reader figcaption a:hover {
-  opacity: 0.8;
-}
-/* Картинка со ссылкой на источник: лёгкая подсказка о кликабельности */
-.prose-reader a.article-img-link {
-  display: block;
-  cursor: zoom-in;
-}
-.prose-reader a.article-img-link img {
-  transition: transform 0.25s ease, filter 0.25s ease;
-}
-.prose-reader a.article-img-link:hover img {
-  filter: brightness(1.06);
-}
 
 /* Плавное появление статьи при автопереходе к следующему посту */
 @keyframes reader-in {
