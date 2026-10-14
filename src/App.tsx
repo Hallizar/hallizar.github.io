@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BookOpen, Wrench, User, Sparkles, Crosshair } from 'lucide-react';
-import { BLOG_POSTS } from './data/posts';
-import { INITIAL_ADS, getActiveAdForSlot } from './data/ads';
+import { getActiveAdForSlot } from './data/ads';
 import { BlogPost, AdBannerItem } from './types';
 import { LocalGifStudio } from './components/LocalGifStudio';
 import { SquooshStudio } from './components/SquooshStudio';
@@ -102,8 +101,14 @@ export default function App() {
   // /posts-data.json, generated at build time from src/content (edited in the
   // Decap CMS admin panel). We intentionally start with EMPTY lists instead of
   // the hard-coded INITIAL_ADS / BLOG_POSTS so that deleted/stale entries can
-  // never flash on screen during load. The hard-coded data is used ONLY as a
-  // fallback if the generated JSON files are missing or unreachable.
+  // never flash on screen during load.
+  //
+  // ВАЖНО: жёстко закодированные INITIAL_ADS / BLOG_POSTS больше НЕ используются
+  // как «резервный вариант». Если бы при недоступности JSON мы показывали их, то
+  // на залитом в GitHub Pages старом деплое (или при сбое загрузки данных)
+  // посетители видели бы давно удалённые демо-статьи и демо-баннеры. Пустой
+  // список — корректное состояние: показываем ровно то, что реально лежит в
+  // src/content и опубликовано через админ-панель.
   const [ads, setAds] = useState<AdBannerItem[]>([]);
   const [adsLoaded, setAdsLoaded] = useState(false);
 
@@ -137,13 +142,15 @@ export default function App() {
             return;
           }
         }
-        // File unavailable (e.g. older deploy without generated data) -> fallback
-        setAds(INITIAL_ADS);
+        // Файл недоступен (старый деплой без сгенерированных данных, сбой сети):
+        // НЕ откатываемся к жёстко закодированным демо-баннерам INITIAL_ADS —
+        // иначе посетители увидят давно удалённые «дефолтные» объявления.
+        setAds([]);
         setAdsLoaded(true);
       })
       .catch(() => {
         if (cancelled) return;
-        setAds(INITIAL_ADS);
+        setAds([]);
         setAdsLoaded(true);
       });
 
@@ -159,12 +166,15 @@ export default function App() {
             return;
           }
         }
-        setPosts(BLOG_POSTS);
+        // Тот же принцип для статей: при недоступности posts-data.json не
+        // показываем устаревший хардкод BLOG_POSTS — только реальное содержимое
+        // src/content/posts (или пусто).
+        setPosts([]);
         setPostsLoaded(true);
       })
       .catch(() => {
         if (cancelled) return;
-        setPosts(BLOG_POSTS);
+        setPosts([]);
         setPostsLoaded(true);
       });
 
