@@ -148,12 +148,11 @@ export function BlogPostView({
   const prevPost = currentIdx > 0 ? chronological[currentIdx - 1] : undefined;
 
   // Адрес статьи синхронизирует App через replaceState (без накопления истории).
-  // Здесь только подстраховка: если URL «уехал» (относительные pushState или повторы),
-  // чиним его. Замыкающий «/» обязателен — иначе относительные пути картинок сбиваются.
+  // Здесь только подстраховка: если URL «уехал» (относительные pushState или повторы), чиним его.
   useEffect(() => {
     const path = window.location.pathname;
     const expected = postPath(post);
-    if (!new RegExp(`(^|/)blog/${post.slug}/$`).test(path) || path.includes('/blog/blog')) {
+    if (!new RegExp(`(^|/)blog/${post.slug}/?$`).test(path) || path.includes('/blog/blog')) {
       window.history.replaceState({ slug: post.slug }, '', expected);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
