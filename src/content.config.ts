@@ -12,6 +12,17 @@ const postsCollection = defineCollection({
     category: z.string().optional(),
     tags: z.array(z.string()).optional(),
     heroImage: z.string().optional(),
+    imageCaption: z.string().optional(),
+    links: z
+      .array(
+        z
+          .union([
+            z.string(),
+            z.object({ label: z.string().optional(), url: z.string() }),
+          ])
+          .optional(),
+      )
+      .optional(),
     draft: z.boolean().default(false),
     content: z.string().optional(),
   }),

@@ -62,6 +62,32 @@ collections:
         required: false
         hint: "Обложка статьи: GIF, анимированный WebP, MP4-видео или статичные PNG/JPG"
 
+      - label: "Image Caption"
+        name: imageCaption
+        widget: string
+        required: false
+        hint: "Описание (подпись) под главным фото статьи в читалке"
+
+      - label: "Links"
+        name: links
+        widget: list
+        required: false
+        types:
+          - label: "Link"
+            name: "link"
+            widget: object
+            fields:
+              - label: "Label"
+                name: label
+                widget: string
+                required: false
+                hint: "Подпись ссылки (по умолчанию — домен)"
+              - label: "URL"
+                name: url
+                widget: string
+                hint: "Ссылка, например https://example.com"
+        hint: "Ссылки под фото в читалке: «Подробнее: (ссылка)»"
+
       - label: "Tags"
         name: tags
         widget: list

@@ -79,6 +79,18 @@ function loadPosts() {
             : '',
           isoDate: dateObj ? dateObj.toISOString() : null,
           image: fm.heroImage ?? fm.image ?? '',
+          imageCaption: fm.imageCaption ?? fm.caption ?? '',
+          links: Array.isArray(fm.links)
+            ? fm.links
+                .map((l: any) => {
+                  if (typeof l === 'string') return { url: l };
+                  if (l && typeof l === 'object' && l.url) {
+                    return { label: l.label || '', url: String(l.url) };
+                  }
+                  return null;
+                })
+                .filter(Boolean)
+            : [],
           readingTime: `${Math.max(1, Math.round(words / 200))} мин чтения`,
           author: { name: 'Hallizar', role: 'Frontend & Systems Engineer', avatar: 'H' },
           views: 0,

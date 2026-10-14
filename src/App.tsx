@@ -11,7 +11,7 @@ import { BlogPostView } from './components/BlogReader';
 import './styles/blog-qwen.css';
 import { ThemeToggle } from './components/ThemeToggle';
 import { getInitialTheme, applyTheme, persistTheme, type ThemeMode } from './utils/theme';
-import { postPath, feedPath, getDataUrl } from './utils/postUrl';
+import { postPath, feedPath, getDataUrl, hashPostPath } from './utils/postUrl';
 import { AdBanner } from './components/AdBanner';
 import { DecapAdminStandalone } from './components/DecapAdminStandalone';
 import { updateSEOMetadata } from './utils/seo';
@@ -24,9 +24,22 @@ function sortByDateDesc(list: BlogPost[]): BlogPost[] {
   );
 }
 
-/** slug из адресной строки (/blog/<slug>/), если пользователь открыл ссылку на статью напрямую. */
+/**
+ * Активный slug статьи: сначала смотрим hash вида #post/<slug> (именно такие
+ * ссылки генерирует SPA-лента — переход по ним НЕ перезагружает страницу и
+ * сразу открывает читалку), затем путь /blog/<slug>/ (прямые ссылки, SEO).
+ */
 function slugFromLocation(): string | null {
   if (typeof window === 'undefined') return null;
+  const hash = window.location.hash || '';
+  const hm = hash.match(/^#post\/(.+)$/);
+  if (hm) {
+    try {
+      return decodeURIComponent(hm[1]);
+    } catch {
+      return hm[1];
+    }
+  }
   const m = window.location.pathname.match(/\/blog\/([^/]+)\/?$/);
   if (!m) return null;
   const raw = decodeURIComponent(m[1]);
@@ -73,24 +86,29 @@ export default function App() {
     normalizePathIfNeeded();
   }, []);
 
-  // Переход между статьями: обновляем адрес БЕЗ добавления новой истории,
-  // чтобы URL всегда был корректным (/blog/<slug>) и никогда не накапливал /blog.
+  // Переход между статьями: «вперёд» — pushState (работает кнопка «Назад»),
+  // «назад к ленте» — replaceState. URL всегда корректный (/blog/<slug>#post/<slug>).
   const selectPost = useCallback((post: BlogPost | null) => {
     setSelectedPost(post);
     if (post) {
-      window.history.replaceState({ slug: post.slug }, '', postPath(post));
+      // hash-маркер #post/<slug>: переход по такой ссылке внутри SPA не
+      // перезагружает страницу — читалка открывается мгновенно.
+      window.history.pushState({ slug: post.slug }, '', hashPostPath(post));
     } else {
-      // Из ленты — добавляем запись истории, чтобы кнопка «Назад» браузера
-      // возвращала к ленте; из статьи в статью — только заменяем адрес.
-      const inArticle = Boolean(window.history.state?.slug) || Boolean(slugFromLocation());
-      const target = feedPath();
-      if (inArticle) {
-        window.history.replaceState({}, '', target);
-      } else {
-        window.history.pushState({}, '', target);
-      }
+      window.history.replaceState({}, '', feedPath());
     }
   }, []);
+
+  // Единый обработчик перехода к статье из ленты: открываем читалку без
+  // перезагрузки страницы (pushState + setSelectedPost).
+  const handleFeedLinkClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>, post: BlogPost) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      e.preventDefault();
+      selectPost(post);
+    },
+    [selectPost],
+  );
 
   // Назад к ленте (кнопка «К ленте») — возвращаем адрес ленты в адресную строку
   const backToFeed = useCallback(() => {
@@ -186,7 +204,7 @@ export default function App() {
   const sidebarAd = getActiveAdForSlot(ads, 'sidebar');
   const inArticleAd = getActiveAdForSlot(ads, 'in-article');
 
-  // Handle URL popstate or pathname changes (включая «Назад» между статьями)
+  // Handle URL popstate / hashchange / pathname changes (включая «Назад» между статьями)
   useEffect(() => {
     const syncFromLocation = () => {
       if (window.location.pathname.includes('/admin')) {
@@ -204,7 +222,13 @@ export default function App() {
       }
     };
     window.addEventListener('popstate', syncFromLocation);
-    return () => window.removeEventListener('popstate', syncFromLocation);
+    // Клик по <a href="...#post/slug"> внутри SPA вызывает hashchange БЕЗ
+    // перезагрузки страницы — так лента мгновенно переносит в читалку.
+    window.addEventListener('hashchange', syncFromLocation);
+    return () => {
+      window.removeEventListener('popstate', syncFromLocation);
+      window.removeEventListener('hashchange', syncFromLocation);
+    };
   }, [posts]);
 
   // Dynamic SEO metadata updates (canonical, open graph, twitter, schema.org)
@@ -363,6 +387,7 @@ export default function App() {
                 posts={posts}
                 sidebarAd={sidebarAd}
                 onSelectPost={selectPost}
+                onLinkClick={handleFeedLinkClick}
               />
             )}
           </div>
