@@ -247,7 +247,12 @@ check('dist/sitemap-index.xml is well-formed XML and lists every published post 
     for (const url of extractLocs(childXml)) urls.add(url.replace(/\/$/, ''));
   }
 
-  const missing = postSlugs.filter((slug) => !urls.has(`${SITE}/blog/${slug}`));
+  // Сравниваем через decodeURIComponent, т.к. Astro экранирует не-ASCII slug'и
+  // в sitemap percent-encoding'ом (кириллица -> %D0%BF...).
+  const decodedUrls = new Set([...urls].map((u) => decodeURIComponent(u)));
+  const missing = postSlugs.filter(
+    (slug) => !decodedUrls.has(`${SITE}/blog/${slug}`) && !decodedUrls.has(`${SITE}/blog/${slug}/`)
+  );
   assert(missing.length === 0, `post URLs missing from sitemap: ${missing.join(', ')}`);
   assert(urls.has(`${SITE}/blog/test-post`), 'test-post URL missing from sitemap');
   const adminUrls = [...urls].filter((u) => u.includes('/admin'));
@@ -317,8 +322,9 @@ for (const file of htmlPages) {
     if (isPost) {
       assert(getMeta(html, 'property', 'og:type') === 'article', 'post pages must use og:type="article"');
       assert(getMeta(html, 'property', 'article:published_time'), 'post pages need article:published_time');
-      const slug = rel.split('/')[1];
-      assert(getMeta(html, 'property', 'og:url')?.replace(/\/$/, '') === `${SITE}/blog/${slug}`,
+      const slug = decodeURIComponent(rel.split('/')[1]);
+      const ogUrl = decodeURIComponent(getMeta(html, 'property', 'og:url') ?? '');
+      assert(ogUrl.replace(/\/$/, '') === `${SITE}/blog/${slug}`,
         `og:url should be ${SITE}/blog/${slug}, got ${getMeta(html, 'property', 'og:url')}`);
       assert(/<link\b[^>]*rel=["']?canonical["']?[^>]*>/i.test(html), 'post pages need a canonical link');
     }

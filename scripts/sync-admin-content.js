@@ -82,7 +82,7 @@ function loadPosts() {
           imageCaption: fm.imageCaption ?? fm.caption ?? '',
           links: Array.isArray(fm.links)
             ? fm.links
-                .map((l: any) => {
+                .map((l) => {
                   if (typeof l === 'string') return { url: l };
                   if (l && typeof l === 'object' && l.url) {
                     return { label: l.label || '', url: String(l.url) };
