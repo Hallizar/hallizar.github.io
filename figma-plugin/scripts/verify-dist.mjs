@@ -23,10 +23,19 @@ const codeJs = await readFile(resolve(here, 'dist/code.js'), 'utf8');
 if (/\b(?:import|export)\s/.test(codeJs)) errors.push('dist/code.js содержит import/export — Figma sandbox их не поддерживает');
 if (/\bdocument\b|\bwindow\b/.test(codeJs)) errors.push('dist/code.js обращается к document/window — в sandbox этого нет');
 
-// UI: скрипт должен быть инлайном (Figma грузит один html-файл)
+// UI: инлайн-скрипт должен присутствовать; внешние <script src> разрешены только для CDN
+// (gif.js / JSZip) — они объявлены в manifest.networkAccess.allowedDomains.
 const uiHtml = await readFile(resolve(here, 'dist/ui.html'), 'utf8');
-if (/<script[^>]+src=/.test(uiHtml)) errors.push('dist/ui.html ссылается на внешний <script src=...> — инлайн не выполнен');
+const allowedCdn = (manifest.networkAccess?.allowedDomains ?? []).filter((d) => d !== 'none');
+const scriptSrcs = [...uiHtml.matchAll(/<script[^>]+src="([^"]+)"/g)].map((m) => m[1]);
+for (const src of scriptSrcs) {
+  const isAllowed = allowedCdn.some((domain) => src.startsWith(domain + '/'));
+  if (!isAllowed) errors.push(`dist/ui.html: внешний скрипт "${src}" не покрыт networkAccess.allowedDomains`);
+}
 if (!/<script>[\s\S]{100,}<\/script>/.test(uiHtml)) errors.push('dist/ui.html: инлайновый скрипт пуст или отсутствует');
+
+// в собранном UI не должно остаться плейсхолдера локального ui.js
+if (uiHtml.includes('<script src="ui.js">')) errors.push('dist/ui.html: ui.js не инлайнен (остался <script src="ui.js">)');
 
 if (errors.length) {
   console.error('figma-plugin verify: ПРОВАЛ:');

@@ -1,160 +1,140 @@
 // Код плагина (main): работает в sandbox Figma, без DOM.
 // Собирается esbuild'ом в dist/code.js. Типы @figma/plugin-typings подключаются через tsconfig.
+//
+// Протокол (как в эталонном batch-сканере):
+//   UI → 'scan-layers'            : просканировать выделение и сгруппировать фреймы по размерам
+//   UI → 'render-group'           : отрендерить PNG-кадры конкретной группы (инкрементально)
+//   sandbox → 'scan-result'       : массив групп { id: "Name::WxH", name, info, frames[] }
+//   sandbox → 'render-data'       : { groupId, framesData: [{ index, name, bytes }] }
+// Кадры передаются как Uint8Array — structured clone сохраняет тип, поэтому в UI
+// new Blob([bytes]) получает корректный ArrayBuffer (передача number[] ломала декодирование PNG).
 
-const MIN_DELAY = 10; // мс — меньше FigJam/браузеры не гарантируют
-const MAX_DELAY = 30000;
 const MAX_FRAMES = 300;
-const MAX_PIXELS = 4_000_000; // ограничение памяти на кадр
 
-type PluginFrameMeta = {
-  index: number;
-  name: string;
-  width: number;
-  height: number;
-  bytes: number;
-};
-
-function clampDelay(value: unknown): number {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return 100;
-  return Math.max(MIN_DELAY, Math.min(MAX_DELAY, Math.round(n)));
-}
+type GroupFrame = { id: string; name: string };
+type ScannedGroup = { id: string; name: string; info: string; frames: GroupFrame[] };
 
 function postUi(message: Record<string, unknown>) {
   figma.ui.postMessage(message);
 }
 
-async function exportNode(node: SceneNode, scale: number): Promise<Uint8Array> {
-  const bytes = await node.exportAsync({
-    format: 'PNG',
-    constraint: { type: 'SCALE', value: scale },
-  });
-  return bytes;
-}
-
-// Инкрементальный экспорт кадров: по одному, с прогрессом и возможностью отмены.
-let cancelled = false;
-
-async function collectFrames(nodes: SceneNode[], scale: number) {
-  const frames: { bytes: Uint8Array; meta: PluginFrameMeta }[] = [];
-  for (let index = 0; index < nodes.length; index += 1) {
-    if (cancelled) return { frames, cancelled: true };
-    const node = nodes[index];
-    try {
-      const bytes = await exportNode(node, scale);
-      frames.push({ bytes, meta: { index, name: node.name, width: node.width, height: node.height, bytes: byteLength(bytes) } });
-      postUi({ type: 'export-progress', index, total: nodes.length });
-    } catch (error) {
-      postUi({
-        type: 'warning',
-        text: `Пропущен слой «${node.name}»: ${error instanceof Error ? error.message : String(error)}`,
-      });
-    }
-  }
-  return { frames, cancelled: false };
-}
-
-function byteLength(bytes: Uint8Array): number {
-  return bytes.byteLength;
-}
-
-function getSelectedNodes(): SceneNode[] | null {
-  const selection = figma.currentPage.selection;
-  if (selection.length === 0) {
-    postUi({ type: 'error', text: 'Выделите кадры — слои или фреймы на странице.' });
+// Кандидаты в кадры: выделенные фреймы/слои; если выделен один контейнер — его дети.
+function getLeafCandidates(): SceneNode[] | null {
+  const selection = [...figma.currentPage.selection];
+  if (!selection.length) {
+    postUi({ type: 'error', text: 'Ничего не выделено. Выделите кадры или контейнер с кадрами.' });
     return null;
   }
-  // Если выделен один фрейм-контейнер — считаем его детьми покадровую анимацию.
-  if (selection.length === 1) {
-    const only = selection[0];
-    if ('children' in only && (only.type === 'FRAME' || only.type === 'GROUP')) {
-      const children = (only as FrameNode | GroupNode).children.filter(
+  // Разворачиваем верхнеуровневые фреймы/группы в детей, если самих детей ≥2
+  // (эталонный сканер работает именно по фреймам внутри выделения).
+  const leaves: SceneNode[] = [];
+  for (const node of selection) {
+    if ((node.type === 'FRAME' || node.type === 'GROUP') && 'children' in node) {
+      const children = (node as FrameNode | GroupNode).children.filter(
         (child) => child.visible && child.width > 0 && child.height > 0,
       );
-      if (children.length >= 2) return children;
+      if (children.length >= 2) {
+        leaves.push(...children);
+        continue;
+      }
     }
+    leaves.push(node);
   }
-  return [...selection];
+  return leaves;
 }
 
-figma.on('selectionchange', () => {
-  const nodes = figma.currentPage.selection;
-  postUi({
-    type: 'selection',
-    count: nodes.length,
-    names: nodes.slice(0, 5).map((n) => n.name),
-  });
-});
+// Группировка по «имя без суффикса» + размер, как в оригинальном сканере:
+// имя группы = имя первого фрейма до разделителя размера; id = "Name::WxH".
+function roundSize(n: number): number {
+  return Math.round(n);
+}
 
-figma.showUI(__html__, { width: 360, height: 520, themeColors: true });
+function buildGroups(nodes: SceneNode[]): ScannedGroup[] {
+  const map = new Map<string, ScannedGroup>();
+  for (const node of nodes) {
+    const w = roundSize(node.width);
+    const h = roundSize(node.height);
+    // Имя без хвостовых цифр/слешей — «Screen 3», «Screen 7» → «Screen»
+    const baseName = node.name.replace(/[\s_-]*\d+\s*$/, '').trim() || node.name;
+    const key = `${baseName}::${w}x${h}`;
+    let group = map.get(key);
+    if (!group) {
+      group = {
+        id: key,
+        name: baseName,
+        info: `${w}×${h}`,
+        frames: [],
+      };
+      map.set(key, group);
+    }
+    group.frames.push({ id: node.id, name: node.name });
+  }
+  // Сортировка: сначала мног кадровые группы, затем по имени
+  return [...map.values()].sort((a, b) => b.frames.length - a.frames.length || a.name.localeCompare(b.name));
+}
+
+let renderCancelled = false;
+
+async function exportNode(node: SceneNode, scale: number): Promise<Uint8Array> {
+  return node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: scale } });
+}
+
+figma.showUI(__html__, { width: 420, height: 620, themeColors: true });
 
 figma.ui.onmessage = async (msg: { type: string; [key: string]: unknown }) => {
   if (msg.type === 'cancel') {
-    cancelled = true;
+    renderCancelled = true;
     return;
   }
 
-  if (msg.type === 'scan') {
-    cancelled = false;
-    const nodes = getSelectedNodes();
+  if (msg.type === 'scan-layers') {
+    renderCancelled = false;
+    const nodes = getLeafCandidates();
     if (!nodes) return;
-    const scale = Math.max(0.1, Math.min(4, Number(msg.scale) || 1));
-    const totalPixels = nodes.reduce((sum, n) => sum + n.width * scale * (n.height * scale), 0);
     if (nodes.length > MAX_FRAMES) {
       postUi({ type: 'error', text: `Слишком много кадров (${nodes.length}). Максимум ${MAX_FRAMES}.` });
       return;
     }
-    if (totalPixels > MAX_PIXELS * nodes.length) {
-      postUi({ type: 'error', text: 'Кадры слишком большие — уменьшите масштаб.' });
-      return;
-    }
-    const first = nodes[0];
-    const mismatched = nodes.filter((n) => Math.abs(n.width - first.width) > 0.5 || Math.abs(n.height - first.height) > 0.5);
-    if (mismatched.length) {
-      postUi({
-        type: 'warning',
-        text: `Размеры кадров отличаются: «${mismatched[0].name}» ${Math.round(mismatched[0].width)}×${Math.round(mismatched[0].height)} против ${Math.round(first.width)}×${Math.round(first.height)}. Все кадры будут приведены к размеру первого.`,
-      });
-    }
-    const { frames, cancelled: wasCancelled } = await collectFrames(nodes, scale);
-    if (wasCancelled || !frames.length) {
-      if (!wasCancelled) postUi({ type: 'error', text: 'Не удалось экспортировать ни одного кадра.' });
-      return;
-    }
-    // Передаём в UI как массивы чисел (structured clone Uint8Array между sandbox и iframe нестабилен на некоторых версиях)
-    postUi({
-      type: 'frames-ready',
-      scale,
-      frames: frames.map((f) => ({
-        meta: f.meta,
-        buffer: Array.from(f.bytes),
-      })),
-    });
+    const groups = buildGroups(nodes);
+    postUi({ type: 'scan-result', data: groups });
     return;
   }
 
-  if (msg.type === 'insert-result') {
-    // msg.bytes — числа из UI, пересобираем в Uint8Array и вставляем как изображение
-    const bytes = Uint8Array.from(msg.bytes as number[]);
-    const name = String(msg.name ?? 'animation.gif');
-    const image = figma.createImage(bytes);
-    const rect = (msg.rect as { x: number; y: number; width: number; height: number }) ?? null;
-    const rectangle = figma.createRectangle();
-    rectangle.name = name;
-    rectangle.resize(rect?.width ?? 320, rect?.height ?? 320);
-    rectangle.fills = [{ type: 'IMAGE', scaleMode: 'FILL', imageHash: image.hash }];
-    if (rect) {
-      rectangle.x = rect.x;
-      rectangle.y = rect.y;
-    } else {
-      const bounds = figma.currentPage.selection[0] ?? null;
-      rectangle.x = bounds ? bounds.x + bounds.width + 40 : 0;
-      rectangle.y = bounds ? bounds.y : 0;
+  if (msg.type === 'render-group') {
+    renderCancelled = false;
+    const groupId = String(msg.groupId ?? '');
+    const frameIds = msg.frameIds as string[];
+    const scale = Math.max(0.1, Math.min(4, Number(msg.settingScale) || 1));
+
+    const framesData: { index: number; name: string; bytes: Uint8Array }[] = [];
+    for (let index = 0; index < frameIds.length; index += 1) {
+      if (renderCancelled) {
+        postUi({ type: 'error', text: 'Рендер отменён.' });
+        return;
+      }
+      const node = await figma.getNodeByIdAsync(frameIds[index]);
+      if (!node || !('width' in node)) {
+        postUi({ type: 'warning', text: `Слой ${frameIds[index]} не найден — пропущен.` });
+        continue;
+      }
+      try {
+        const bytes = await exportNode(node as SceneNode, scale);
+        // Uint8Array передаётся через structured clone без потерь (number[] ломал Blob в UI).
+        framesData.push({ index, name: node.name, bytes });
+        postUi({ type: 'render-progress', index, total: frameIds.length });
+      } catch (error) {
+        postUi({
+          type: 'warning',
+          text: `Пропущен слой «${node.name}»: ${error instanceof Error ? error.message : String(error)}`,
+        });
+      }
     }
-    figma.currentPage.appendChild(rectangle);
-    figma.currentPage.selection = [rectangle];
-    figma.viewport.scrollAndZoomIntoView([rectangle]);
-    postUi({ type: 'inserted', hash: image.hash });
+
+    if (!framesData.length) {
+      postUi({ type: 'error', text: `Не удалось отрендерить кадры группы «${groupId}».` });
+      return;
+    }
+    postUi({ type: 'render-data', groupId, framesData });
     return;
   }
 
