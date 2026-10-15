@@ -7,9 +7,6 @@
   "editorType": ["figma"],
   "documentAccess": "dynamic-page",
   "networkAccess": {
-    "allowedDomains": [
-      "https://hallizar.ru"
-    ],
-    "reasoning": "Плагин использует сайт hallizar.ru (раздел Services → GIF Studio) как движок пакетной сборки GIF: кодирование выполняется gifski (gifski-wasm) на сайте, который открывается в iframe UI плагина."
+    "allowedDomains": ["none"]
   }
 }

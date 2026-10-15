@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import gifskiEncode from 'gifski-wasm';
 import {
   AlertTriangle,
@@ -389,101 +389,6 @@ export function LocalGifStudio() {
   const currentPreviewFrame = previewGroup
     ? previewGroup.frames[previewModal?.frameIndex ?? 0] ?? null
     : null;
-
-  // --- Режим внешнего вызова (Figma-плагин открывает сайт как GIF-движок) ---
-  // Плагин шлёт кадры PNG через postMessage, получает готовый GIF тем же путём.
-  // Кодирование — только gifski (gifski-wasm), как в основном режиме сайта.
-  type PluginJob = { groupId: string; frames: { name: string; bytes: Uint8Array }[] };
-  const [pluginMode, setPluginMode] = useState(false);
-  const pluginJobsRef = useRef<Map<string, PluginJob>>(new Map());
-  const pluginPendingRef = useRef(0);
-  const settingsRef = useRef(settings);
-  settingsRef.current = settings;
-
-  const pluginEncodeAndReply = useCallback(async (job: PluginJob) => {
-    const send = (payload: Record<string, unknown>) => {
-      try {
-        window.parent.postMessage(payload, '*');
-      } catch {
-        /* окно закрыли до ответа */
-      }
-    };
-    try {
-      const files = job.frames.map(
-        (f) => new File([f.bytes as BlobPart], f.name || 'frame.png', { type: 'image/png' }),
-      );
-      const sourceFrames = await Promise.all(files.map((file) => readImage(file)));
-      if (!sourceFrames.length) throw new Error('Нет кадров');
-      const width = Math.max(1, sourceFrames[0].width);
-      const height = Math.max(1, sourceFrames[0].height);
-      const s = settingsRef.current;
-      const encoded = await encodeGifWithGifski(
-        sourceFrames.map((f) => ({ data: f.data, width, height })),
-        s,
-        () => {},
-      );
-      const blob = new Blob([encoded.bytes.buffer as ArrayBuffer], { type: 'image/gif' });
-      const buffer = await blob.arrayBuffer();
-      send({
-        pluginMode: true,
-        type: 'gif-result',
-        groupId: job.groupId,
-        bytes: new Uint8Array(buffer),
-        fileName: `${(job.groupId || 'sequence').replace(/[^a-z0-9а-яё_-]+/gi, '-')}.gif`,
-      });
-    } catch (error) {
-      send({
-        pluginMode: true,
-        type: 'gif-error',
-        groupId: job.groupId,
-        message: error instanceof Error ? error.message : 'Не удалось закодировать GIF',
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (window.self === window.top) return; // не во фрейме — обычный режим сайта
-
-    const listener = async (event: MessageEvent) => {
-      const data = event.data;
-      if (!data || typeof data !== 'object') return;
-
-      if (data.type === 'plugin-handshake') {
-        setPluginMode(true);
-        window.parent.postMessage({ pluginMode: true, type: 'plugin-ready' }, '*');
-        return;
-      }
-
-      if (data.type === 'settings') {
-        setSettings((current) => ({ ...current, ...(data.payload ?? {}) }));
-        return;
-      }
-
-      if (data.type === 'encode-batch') {
-        const jobs = (data.payload?.jobs ?? []) as PluginJob[];
-        for (const job of jobs) pluginJobsRef.current.set(job.groupId, job);
-        pluginPendingRef.current += jobs.length;
-        setPluginMode(true);
-        jobs.forEach((job) => void pluginEncodeAndReply(job));
-      }
-    };
-
-    window.addEventListener('message', listener);
-    return () => window.removeEventListener('message', listener);
-  }, [pluginEncodeAndReply]);
-
-  if (pluginMode) {
-    return (
-      <div style={{ padding: 24, fontFamily: 'Inter, sans-serif', fontSize: 13 }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15 }}>GIF Studio — движок кодирования</h2>
-        <p style={{ margin: 0, opacity: 0.7 }}>
-          Этот экземпляр работает как сервер сборки GIF для Figma-плагина
-          {pluginPendingRef.current > 0 ? ` (в очереди: ${pluginPendingRef.current})` : ''}.
-          Закройте окно плагина, чтобы продолжить работу с сайтом.
-        </p>
-      </div>
-    );
-  }
 
   const openPreview = (group: Group, index: number) => {
     setPreviewModal({ groupId: group.id, frameIndex: index });

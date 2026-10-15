@@ -68,15 +68,7 @@ export default function App() {
     return 'blog';
   });
 
-  const [selectedService, setSelectedService] = useState<'gif-studio' | 'squoosh' | 'area-analyzer'>(() => {
-    // Deep-link для внешних клиентов (например, Figma-плагин открывает
-    // https://hallizar.ru/#services/gif-studio — страница та же, но сервис выбран сразу).
-    if (typeof window !== 'undefined') {
-      const m = (window.location.hash || '').match(/^#services\/(gif-studio|squoosh|area-analyzer)/);
-      if (m) return m[1] as 'gif-studio' | 'squoosh' | 'area-analyzer';
-    }
-    return 'gif-studio';
-  });
+  const [selectedService, setSelectedService] = useState<'gif-studio' | 'squoosh' | 'area-analyzer'>('gif-studio');
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
 
   // Единая тема для всего сайта (светлая / тёмная), сохраняется между визитами
@@ -218,12 +210,6 @@ export default function App() {
       if (window.location.pathname.includes('/admin')) {
         setRoute('admin');
         return;
-      }
-      // Deep-link вида #services/<id> (используется Figma-плагином)
-      const svc = (window.location.hash || '').match(/^#services\/(gif-studio|squoosh|area-analyzer)/);
-      if (svc) {
-        setRoute('services');
-        setSelectedService(svc[1] as 'gif-studio' | 'squoosh' | 'area-analyzer');
       }
       // Защита от накопленных относительных адресов — чиним строку сразу
       normalizePathIfNeeded();
