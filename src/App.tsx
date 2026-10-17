@@ -468,7 +468,7 @@ export default function App() {
               <div className="p-4 border border-(--line) bg-(--elevated) rounded-xl">
                 <strong className="text-(--text) block mb-1 font-sans text-sm">Стек технологий</strong>
                 <p className="text-[11px] text-(--muted) m-0 leading-relaxed">
-                  Astro 5 (SSG), Tailwind CSS, React Islands, WebAssembly (gifski-wasm), Decap CMS, GitHub Pages.
+                  Astro 5 (SSG), Tailwind CSS, React Islands, WebAssembly (gifski-wasm), Decap CMS.
                 </p>
               </div>
 
