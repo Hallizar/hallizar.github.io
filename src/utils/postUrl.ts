@@ -2,16 +2,7 @@ import { BlogPost } from '../types';
 
 const KNOWN_ROOT_ROUTES = new Set(['blog', 'services', 'about', 'admin', 'dist', 'index.html', '404.html']);
 
-/**
- * Базовый префикс сайта для GitHub Pages или кастомного домена.
- * Например:
- *   - "https://hallizar.ru/blog" -> ""
- *   - "https://hallizar.github.io/blog" -> ""
- *   - "https://hallizar.github.io/hallizar.dev.github.io/blog" -> "/hallizar.dev.github.io"
- *   - "https://user.github.io/my-repo/blog" -> "/my-repo"
- * Всегда возвращает путь БЕЗ замыкающего слэша, гарантируя что итоговый адрес
- * всегда начинается с '/' и никогда не является относительным './blog'.
- */
+
 export function getBasePrefix(): string {
   if (typeof window === 'undefined') {
     const envBase = import.meta.env.BASE_URL || '/';

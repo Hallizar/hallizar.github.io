@@ -123,7 +123,7 @@ export function DecapAdminStandalone() {
             <div>
               <div className="text-[10px] font-bold text-[#00ff9d] tracking-wider uppercase flex items-center gap-1.5">
                 <ShieldCheck size={12} />
-                GitHub Backend &middot; Decap CMS
+                 kek Backend &middot; Decap CMS
               </div>
               <h1 className="text-base sm:text-lg font-bold font-sans text-white">
                 Панель управления контентом
@@ -132,7 +132,7 @@ export function DecapAdminStandalone() {
           </div>
 
           <div className="text-right text-[10px] text-[#777]">
-            <span className="block text-[#a0a0b0] font-bold">Hallizar/hallizar.dev.github.io</span>
+            <span className="block text-[#a0a0b0] font-bold">heh</span>
             <span>ветка main</span>
           </div>
         </div>
