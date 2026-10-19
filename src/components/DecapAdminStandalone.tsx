@@ -161,7 +161,7 @@ export function DecapAdminStandalone() {
                     )}
                   </div>
                   <div className="text-[10px] text-[#70a080]">
-                    Токен: <code className="text-[#a0e0c0]">{savedTokenPreview}</code> (доступ к репозиторию подтверждён)
+                    Токен: <code className="text-[#a0e0c0]">{savedTokenPreview}</code> (достуg подтверждён)
                   </div>
                 </div>
               </div>
@@ -177,7 +177,7 @@ export function DecapAdminStandalone() {
             </div>
 
             <p className="text-[#9999a4] text-xs leading-relaxed">
-              Вы успешно авторизованы в GitHub. Теперь вы можете перейти в полноэкранный интерфейс Decap CMS для редактирования статей блога и рекламных блоков РСЯ.
+              Вы успешно авторизованы. 
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
@@ -203,7 +203,7 @@ export function DecapAdminStandalone() {
             )}
 
             <p className="text-[#9595a4] text-xs leading-relaxed">
-              Авторизация в Decap CMS работает напрямую через <strong>GitHub</strong> (Netlify Identity отключен). Единственный способ входа — <strong>Personal Access Token</strong>:
+              Авторизация в Decap CMS работает напрямую через <strong>heh</strong> (nheh отключен). Единственный способ входа — <strong>PAT</strong>:
             </p>
 
             {/* Login by Personal Access Token (PAT) — the only method */}
@@ -211,12 +211,11 @@ export function DecapAdminStandalone() {
               <div className="flex items-center justify-between">
                 <span className="text-white font-bold flex items-center gap-2">
                   <Key size={14} className="text-[#bd5aff]" />
-                  Вход по GitHub Personal Access Token
+                  Вход по PAT
                 </span>
               </div>
 
-              <p className="text-[#777786] text-[11px] leading-relaxed">
-                Вставьте ваш Personal Access Token (classic) с правами <code>repo</code> на репозиторий <code>Hallizar/hallizar.dev.github.io</code>.
+              <p className="text-[#777786] text-[11px] leading-relaxed">HEH<code>KEK</code>.
               </p>
 
               <div className="space-y-2">
@@ -244,7 +243,7 @@ export function DecapAdminStandalone() {
                     rel="noreferrer"
                     className="text-[#bd5aff] hover:underline flex items-center gap-1"
                   >
-                    <span>Создать токен на GitHub (право repo)</span>
+                    <span>Создать токен на KEK</span>
                     <ExternalLink size={10} />
                   </a>
 
