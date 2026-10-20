@@ -2,11 +2,11 @@
   "priority": 5,
   "active": true,
   "rtbBlockId": "R-A-2849102-3",
-  "endDate": "2026-11-30",
+  "endDate": "2027-02-28",
   "startDate": "2026-02-01",
-  "imageUrl": "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=700&auto=format&fit=crop&q=80",
-  "title": "Global Edge CDN & Serverless Storage for Astro Sites",
+  "imageUrl": "https://psv4.vkuserphoto.ru/s/v1/d2/aaKDjnvN7nZcldTAkzqgS6KROCyILAxWCPJ6dTHpQD_EcB6_TKt5OAE-Ws0XZ6Xi1VnvoNDyCA7aK50A2v_gTBcB2hwRo8ohKewylAq-HWtQKvg6qUHL2aOb7xggH7zNQNfNOO_Qx9RQ/ads1.jpg?dl=1",
+  "title": "Тут может быть ваша реклама.",
   "id": "fast-edge-cdn-promo",
   "slot": "in-article",
-  "targetUrl": "https://fastcdn.example.com/signup?utm_source=hallizar_blog&utm_medium=banner&utm_campaign=in_article_contextual&utm_content=cdn_storage"
+  "targetUrl": "https://hallizar.ru/blog/2026-10-20-%D1%81%D0%BE%D1%82%D1%80%D1%83%D0%B4%D0%BD%D0%B8%D1%87%D0%B5%D1%81%D1%82%D0%B2%D0%BE"
 }
